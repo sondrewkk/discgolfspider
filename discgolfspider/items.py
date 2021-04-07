@@ -6,7 +6,6 @@
 import scrapy
 
 
-class DiscgolfspiderItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class DiscItem(scrapy.Item):
+    name = scrapy.Field()
+    spider = scrapy.Field()

@@ -6,8 +6,15 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+from scrapy.exceptions import DropItem
+from .items import DiscItem
 
 
-class DiscgolfspiderPipeline:
+class DiscItemPipeline:
     def process_item(self, item, spider):
-        return item
+        adapter = ItemAdapter(item)
+
+        if adapter.get("name"):
+            return item
+        else:
+            raise DropItem(f"Missing name in {item}")
