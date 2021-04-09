@@ -8,4 +8,4 @@ import scrapy
 
 class DiscItem(scrapy.Item):
     name = scrapy.Field()
-    spider = scrapy.Field()
+    site = scrapy.Field()

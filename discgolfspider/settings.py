@@ -64,6 +64,7 @@ ROBOTSTXT_OBEY = False
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'discgolfspider.pipelines.DiscItemPipeline': 300,
+    'discgolfspider.pipelines.MongoDBPipeline' : 400
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -86,3 +87,7 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# MongoDB configuration
+MONGO_URI = "mongodb://192.168.10.5:27017"
+MONGO_DB = "discgolfspider"
