@@ -26,6 +26,8 @@ class DiscItemPipeline:
 class MongoDBPipeline:
     
     collection_name = "discs"
+    current_discs = []
+    new_discs = []
 
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri=mongo_uri
@@ -43,9 +45,16 @@ class MongoDBPipeline:
         self.db = self.client[self.mongo_db]
 
     def close_spider(self, spider):
+        discs = self.db[self.collection_name]
+        self.current_discs = discs.find({})
+        
+        discs.delete_many({})
+        discs.insert_many(self.new_discs)
+        
         self.client.close()
 
     def process_item(self, item, spider):
         disc = ItemAdapter(item).asdict()
-        self.db[self.collection_name].replace_one(disc, disc, True)
+        #self.db[self.collection_name].replace_one(disc, disc, True)
+        self.new_discs.append(disc)
         return item
