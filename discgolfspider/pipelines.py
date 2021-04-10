@@ -15,10 +15,10 @@ from .items import DiscItem
 
 class DiscItemPipeline:
     def process_item(self, item, spider):
-        adapter = ItemAdapter(item)
+        disc = ItemAdapter(item)
 
-        if not adapter.get("name"):
-            raise DropItem(f"Missing name in {item}")
+        if not disc.get("name"):
+            raise DropItem(f"Missing name in {disc}")
 
         return item
 
