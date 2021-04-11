@@ -9,3 +9,4 @@ import scrapy
 class DiscItem(scrapy.Item):
     name = scrapy.Field()
     site = scrapy.Field()
+    in_stock = scrapy.Field()

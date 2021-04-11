@@ -14,9 +14,9 @@ class DgshopSpider(scrapy.Spider):
         disc_name = product.css(".product-image-photo::attr(alt)").get()
         
         disc = DiscItem()
-
         disc["name"] = disc_name
         disc["site"] = self.name
+        disc["in_stock"] = True
 
         yield disc
       

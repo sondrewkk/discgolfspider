@@ -46,7 +46,6 @@ class MongoDBPipeline:
 
     def close_spider(self, spider):
         discs = self.db[self.collection_name]
-        self.current_discs = discs.find({})
         
         discs.delete_many({})
         discs.insert_many(self.new_discs)
