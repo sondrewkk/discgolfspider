@@ -8,5 +8,8 @@ import scrapy
 
 class DiscItem(scrapy.Item):
     name = scrapy.Field()
-    site = scrapy.Field()
+    image = scrapy.Field()
+    spider_name = scrapy.Field()
     in_stock = scrapy.Field()
+    url = scrapy.Field()
+    retailer = scrapy.Field()

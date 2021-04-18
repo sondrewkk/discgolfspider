@@ -20,11 +20,16 @@ class GuruSpider(scrapy.Spider):
     else:
       for product in response.css(".product-layout"):
         disc_name = product.css(".img-responsive::attr(alt)").get()
+        disc_image = product.css(".img-responsive::attr(src)").get()
         in_stock = product.css(".stock-status::text").get() != "Utsolgt"
+        disc_url = product.css("a::attr(href)").get()
         
         disc = DiscItem()
         disc["name"] = disc_name
-        disc["site"] = self.name
+        disc["image"] = disc_image
+        disc["spider_name"] = self.name
         disc["in_stock"] = in_stock
+        disc["url"] = disc_url
+        disc["retailer"] = self.allowed_domains[0]
 
         yield disc 
