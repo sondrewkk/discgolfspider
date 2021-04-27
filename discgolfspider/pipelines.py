@@ -32,6 +32,8 @@ class MongoDBPipeline:
         self.mongo_uri=mongo_uri
         self.mongo_db=mongo_db
 
+        # Sjekk om det er key for søking. Kanskje ligge i ett create script på monog container
+
     @classmethod
     def from_crawler(cls, crawler):
         return cls(
@@ -54,6 +56,6 @@ class MongoDBPipeline:
 
     def process_item(self, item, spider):
         disc = ItemAdapter(item).asdict()
-        #self.db[self.collection_name].replace_one(disc, disc, True)
         self.new_discs.append(disc)
+        
         return item
