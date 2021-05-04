@@ -8,7 +8,8 @@ from discgolfspider.spiders.guru_spider import GuruSpider
 
 
 configure_logging()
-runner = CrawlerRunner(get_project_settings())
+settings = get_project_settings()
+runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
 def crawl():
@@ -27,9 +28,13 @@ def cb_loop_error(failure):
 
 def start():  
   loop = task.LoopingCall(crawl)
+  interval = settings["CRAWL_INTERVAL"]
 
-  loopDeferred = loop.start(60 * 60)
+  loopDeferred = loop.start(interval)
   loopDeferred.addCallback(cb_loop_done)
   loopDeferred.addErrback(cb_loop_error)
 
   reactor.run() # Blocks until last crawl is finished
+
+if __name__ == "__main__":
+ start()

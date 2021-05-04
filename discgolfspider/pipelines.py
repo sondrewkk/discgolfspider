@@ -28,21 +28,26 @@ class MongoDBPipeline:
     collection_name = "discs"
     new_discs = []
 
-    def __init__(self, mongo_uri, mongo_db):
-        self.mongo_uri=mongo_uri
+    def __init__(self, mongo_host, mongo_port, mongo_db, mongo_user, mongo_user_password):
+        self.mongo_host=mongo_host
+        self.mongo_port=mongo_port
         self.mongo_db=mongo_db
-
-        # Sjekk om det er key for søking. Kanskje ligge i ett create script på monog container
+        self.mongo_user=mongo_user
+        self.mongo_user_password=mongo_user_password
+        print(f"host={self.mongo_host} - port={self.mongo_port} - user={self.mongo_user} - pass={self.mongo_user_password}")
 
     @classmethod
     def from_crawler(cls, crawler):
         return cls(
-            mongo_uri=crawler.settings.get("MONGO_URI"),
-            mongo_db=crawler.settings.get("MONGO_DB")
+            mongo_host=crawler.settings.get("MONGO_HOST"),
+            mongo_port=crawler.settings.get("MONGO_PORT"),
+            mongo_db=crawler.settings.get("MONGO_DB"),
+            mongo_user=crawler.settings.get("MONGO_NON_ROOT_USERNAME"),
+            mongo_user_password=crawler.settings.get("MONGO_NON_ROOT_PASSWORD")
         )
     
     def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_uri)
+        self.client = pymongo.MongoClient(self.mongo_host, username=self.mongo_user, password=self.mongo_user_password, authSource=self.mongo_db)
         self.db = self.client[self.mongo_db]
 
     def close_spider(self, spider):

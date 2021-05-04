@@ -1,3 +1,4 @@
+import os
 # Scrapy settings for discgolfspider project
 #
 # For simplicity, this file contains only settings considered important or
@@ -89,5 +90,17 @@ ITEM_PIPELINES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # MongoDB configuration
-MONGO_URI = "mongodb://192.168.10.5:27017"
-MONGO_DB = "discgolfspider"
+MONGO_HOST = os.getenv("MONGO_HOST", "host")
+MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))
+MONGO_DB = os.getenv("MONGO_DB", "database")
+MONGO_NON_ROOT_USERNAME = os.getenv("MONGO_NON_ROOT_USERNAME", "user")
+MONGO_NON_ROOT_PASSWORD_FILE = os.getenv("MONGO_NON_ROOT_PASSWORD_FILE")
+
+if MONGO_NON_ROOT_PASSWORD_FILE:
+    with open(MONGO_NON_ROOT_PASSWORD_FILE, "r") as file:
+        MONGO_NON_ROOT_PASSWORD = file.read()
+else:
+    MONGO_NON_ROOT_PASSWORD = "Passw0rd"
+
+# Crawl interval
+CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL", 3600)) # One hour default
