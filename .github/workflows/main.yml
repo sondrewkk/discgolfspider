@@ -50,7 +50,7 @@ jobs:
           context: ./
           file: docker/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/discinstock_discgolfspider:latest  
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/discinstock_spider:latest  
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/buildx-cache
       - 
