@@ -3,8 +3,8 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 
-from discgolfspider.spiders.dgshop_spider import DgshopSpider
-from discgolfspider.spiders.guru_spider import GuruSpider
+from .spiders.dgshop_spider import DgshopSpider
+from .spiders.guru_spider import GuruSpider
 
 
 configure_logging()
