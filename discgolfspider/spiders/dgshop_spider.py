@@ -6,30 +6,41 @@ class DgshopSpider(scrapy.Spider):
   name = "dgshop"
   allowed_domains = ["dgshop.no"]
   start_urls = [
-    "https://www.dgshop.no/discer?product_list_limit=48"
+    "https://www.dgshop.no/"
   ]
 
   def parse(self, response):
+    for brand in response.xpath("/html/body/div[2]/div[1]/div/div[2]/nav/ul/li[2]/ul/li"):
+      brand_name = brand.css("a > span::text").get()
+      next_page = brand.css("a::attr(href)").get()
+
+      if next_page is not None:
+        yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand_name})
+  
+  def parse_products(self, response, brand):
     for product in response.css(".product-item-info"):
-        disc_name = product.css(".product-image-photo::attr(alt)").get()
-        disc_image = product.css(".product-image-photo::attr(src)").get()
-        disc_url = product.css("a::attr(href)").get()
+      disc = DiscItem()
+      disc["name"] = product.css(".product-image-photo::attr(alt)").get()
+      disc["image"] = product.css(".product-image-photo::attr(src)").get()
+      disc["url"] = product.css("a::attr(href)").get()
+      disc["spider_name"] = self.name
+      disc["in_stock"] = True
+      disc["retailer"] = self.allowed_domains[0]
+      disc["brand"] = brand
+      
+      price = product.css(".price::text").get()
+      flight_specs = product.css(".flight-rating > text::text").getall()
 
-        self.log(f"disc_url = {disc_url}")
+      if price:
+        disc["price"] = ''.join(filter(str.isdigit, price))
         
-        disc = DiscItem()
-        disc["name"] = disc_name
-        disc["image"] = disc_image
-        disc["spider_name"] = self.name
-        disc["in_stock"] = True
-        disc["url"] = disc_url
-        disc["retailer"] = self.allowed_domains[0]
+      if len(flight_specs) == 4:
+        disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
 
-        yield disc
+      yield disc
       
     next_page = response.css("li.pages-item-next a::attr(href)").get()
 
     if next_page is not None:
-      yield response.follow(next_page, callback=self.parse)
-
+      yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
     
