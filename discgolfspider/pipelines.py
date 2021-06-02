@@ -34,7 +34,6 @@ class MongoDBPipeline:
         self.mongo_db=mongo_db
         self.mongo_user=mongo_user
         self.mongo_user_password=mongo_user_password
-        print(f"host={self.mongo_host} - port={self.mongo_port} - user={self.mongo_user} - pass={self.mongo_user_password}")
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -47,7 +46,11 @@ class MongoDBPipeline:
         )
     
     def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_host, username=self.mongo_user, password=self.mongo_user_password, authSource=self.mongo_db)
+        if self.mongo_user:
+            self.client = pymongo.MongoClient(host=self.mongo_host, port=self.mongo_port, username=self.mongo_user, password=self.mongo_user_password, authSource=self.mongo_db)
+        else:
+            self.client = pymongo.MongoClient(host=self.mongo_host, port=self.mongo_port)
+
         self.db = self.client[self.mongo_db]
 
     def close_spider(self, spider):
