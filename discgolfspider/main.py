@@ -5,6 +5,7 @@ from scrapy.utils.project import get_project_settings
 
 from .spiders.dgshop_spider import DgshopSpider
 from .spiders.guru_spider import GuruSpider
+from .spiders.aceshop_spider import AceshopSpider
 
 
 configure_logging()
@@ -15,6 +16,7 @@ runner = CrawlerRunner(settings)
 def crawl():
   yield runner.crawl(DgshopSpider)
   yield runner.crawl(GuruSpider)
+  yield runner.crawl(AceshopSpider)
 
   return
 
