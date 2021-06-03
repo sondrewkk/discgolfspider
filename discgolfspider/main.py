@@ -6,6 +6,7 @@ from scrapy.utils.project import get_project_settings
 from .spiders.dgshop_spider import DgshopSpider
 from .spiders.guru_spider import GuruSpider
 from .spiders.aceshop_spider import AceshopSpider
+from .spiders.krokholdgs_spider import KrokholDgsSpider
 
 
 configure_logging()
@@ -14,9 +15,10 @@ runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
 def crawl():
-  yield runner.crawl(DgshopSpider)
-  yield runner.crawl(GuruSpider)
-  yield runner.crawl(AceshopSpider)
+  # yield runner.crawl(DgshopSpider)
+  # yield runner.crawl(GuruSpider)
+  # yield runner.crawl(AceshopSpider)
+  yield runner.crawl(KrokholDgsSpider)
 
   return
 
