@@ -15,9 +15,9 @@ runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
 def crawl():
-  # yield runner.crawl(DgshopSpider)
-  # yield runner.crawl(GuruSpider)
-  # yield runner.crawl(AceshopSpider)
+  yield runner.crawl(DgshopSpider)
+  yield runner.crawl(GuruSpider)
+  yield runner.crawl(AceshopSpider)
   yield runner.crawl(KrokholDgsSpider)
 
   return

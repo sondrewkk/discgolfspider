@@ -9,7 +9,7 @@ class KrokholDgsSpider(scrapy.Spider):
         "https://www.krokholdgs.no/categories/putter-disk",
         "https://www.krokholdgs.no/categories/midrange-disk",
         "https://www.krokholdgs.no/categories/fairwaydriver",
-        "https://www.krokholdgs.no/categories/driver-disk"
+        "https://www.krokholdgs.no/categories/driver-disk",
     ]
 
     def parse(self, response):
@@ -23,11 +23,10 @@ class KrokholDgsSpider(scrapy.Spider):
             disc["retailer"] = self.allowed_domains[0]
             disc["brand"] = product.css(".product::attr(data-manufacturer)").get()
             disc["price"] = product.css(".product-box::attr(data-price-including-tax)").get()
-            
-            flight_specs = product.css(".product_box_tag span::text").getall()
-            
-            if len(flight_specs) == 4:
-                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+            disc["speed"] = None
+            disc["glide"] = None
+            disc["turn"] = None
+            disc["fade"] = None
             
             yield disc
 
