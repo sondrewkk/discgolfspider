@@ -102,3 +102,6 @@ if MONGO_NON_ROOT_PASSWORD_FILE:
 
 # Crawl interval
 CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL", 3600)) # One hour default
+
+#Logging
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

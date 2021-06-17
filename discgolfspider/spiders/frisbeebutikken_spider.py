@@ -54,7 +54,6 @@ class FrisbeebutikkenSpider(scrapy.Spider):
 
     if current_page < pages:
       next_page = response.url.replace(f"p={ current_page }", f"p={ current_page + 1 }")
-      self.logger.debug(f"next={next_page}")
       yield response.follow(next_page, callback=self.parse)
    
 

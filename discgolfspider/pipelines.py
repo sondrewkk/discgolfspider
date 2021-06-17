@@ -4,27 +4,24 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 import pymongo
-import logging
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-
 from scrapy.exceptions import DropItem
-from .items import DiscItem
-
 
 class DiscItemPipeline:
     def process_item(self, item, spider):
         disc = ItemAdapter(item)
 
         if not disc.get("name"):
-            raise DropItem(f"Missing name in {disc}")
+            raise DropItem(f"Missing name:\n {disc}")
+
+        if disc.get("price") and disc.get("price") >= 500:
+            raise DropItem(f"Probably not a disc. Price is to high")
 
         return item
 
-
 class MongoDBPipeline:
-    
     collection_name = "discs"
     new_discs = []
 
