@@ -1,7 +1,8 @@
+import importlib
 from twisted.internet import reactor, defer, task
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
-import logging
+from scrapy.utils.log import logger, configure_logging
 
 from .spiders.dgshop_spider import DgshopSpider
 from .spiders.guru_spider import GuruSpider
@@ -12,9 +13,10 @@ from .spiders.krokholdgs_spider import KrokholDgsSpider
 from .spiders.frisbeesor_spider import FrisbeesorSpider
 
 
-
 settings = get_project_settings()
-logging.basicConfig(level=settings.get("LOG_LEVEL"))
+
+#logging.basicConfig(level=settings.get("LOG_LEVEL"))
+configure_logging({"LOG_LEVEL": settings.get("LOG_LEVEL")})
 runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
@@ -30,14 +32,16 @@ def crawl():
   return
 
 def cb_loop_done(result):
-  print("Crawl loop done")
+  logger.info(f"Crawl done. Result: \n {result}")
   reactor.stop()
 
 def cb_loop_error(failure):
-  print(failure.getBriefTraceback())
+  logger.error(failure.getBriefTraceback())
   reactor.stop()
 
 def start():  
+  logger.info(f"Crawl process is starting.")
+  
   loop = task.LoopingCall(crawl)
   interval = settings["CRAWL_INTERVAL"]
 

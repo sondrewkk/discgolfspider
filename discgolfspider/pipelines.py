@@ -8,6 +8,7 @@ import pymongo
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
+from scrapy.utils.log import logger
 
 class DiscItemPipeline:
     def process_item(self, item, spider):
@@ -43,6 +44,8 @@ class MongoDBPipeline:
         )
     
     def open_spider(self, spider):
+        logger.info(f"Crawling {spider.name}")
+
         if self.mongo_user:
             self.client = pymongo.MongoClient(host=self.mongo_host, port=self.mongo_port, username=self.mongo_user, password=self.mongo_user_password, authSource=self.mongo_db)
         else:
