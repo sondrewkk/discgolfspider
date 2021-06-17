@@ -15,7 +15,6 @@ from .spiders.frisbeesor_spider import FrisbeesorSpider
 
 settings = get_project_settings()
 
-#logging.basicConfig(level=settings.get("LOG_LEVEL"))
 configure_logging({"LOG_LEVEL": settings.get("LOG_LEVEL")})
 runner = CrawlerRunner(settings)
 
