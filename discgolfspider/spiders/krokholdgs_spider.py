@@ -22,7 +22,7 @@ class KrokholDgsSpider(scrapy.Spider):
             disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
             disc["retailer"] = self.allowed_domains[0]
             disc["brand"] = product.css(".product::attr(data-manufacturer)").get()
-            disc["price"] = product.css(".product-box::attr(data-price-including-tax)").get()
+            disc["price"] = int(product.css(".product-box::attr(data-price-including-tax)").get())
             disc["speed"] = None
             disc["glide"] = None
             disc["turn"] = None

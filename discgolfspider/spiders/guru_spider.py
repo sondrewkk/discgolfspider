@@ -41,7 +41,7 @@ class GuruSpider(scrapy.Spider):
         flight_specs = product.css(".attribute-groups > span::text").getall()
 
         if price:
-          disc["price"] = ''.join(filter(str.isdigit, price))
+          disc["price"] = int(''.join(filter(str.isdigit, price.split(",")[0])))
 
         if len(flight_specs) == 4:
           disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs

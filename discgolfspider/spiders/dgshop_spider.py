@@ -32,7 +32,7 @@ class DgshopSpider(scrapy.Spider):
       flight_specs = product.css(".flight-rating > text::text").getall()
 
       if price:
-        disc["price"] = ''.join(filter(str.isdigit, price))
+        disc["price"] = int(price.split(",")[0])
         
       if len(flight_specs) == 4:
         disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs

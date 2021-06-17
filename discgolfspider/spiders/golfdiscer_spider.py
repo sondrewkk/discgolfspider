@@ -30,7 +30,7 @@ class GolfdiscerSpider(scrapy.Spider):
       disc["spider_name"] = self.name
       disc["brand"] = brand
       disc["retailer"] = self.allowed_domains[0]
-      disc["price"] = product.css(".money::text").get().split(",")[0]
+      disc["price"] = int(product.css(".money::text").get().split(",")[0])
       disc["speed"] = product.css(".flight-numbers > li span::text").get().strip()
       disc["glide"] = product.css(".flight-numbers > li:nth-child(2)::text").get().strip()
       disc["turn"] = product.css(".flight-numbers > li:nth-child(3)::text").get().strip()
