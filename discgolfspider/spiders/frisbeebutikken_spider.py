@@ -19,7 +19,7 @@ class FrisbeebutikkenSpider(scrapy.Spider):
   brand_map = {
     "Discmania": "5ca31978701f5d0dd4dc0b22",
     "Innova": "5ca006f9701f5d08f01a44ff",
-    "Latitude 64": "5ca00656701f5d08f01a43",
+    "Latitude 64": "5ca00656701f5d08f01a43fb",
     "Discraft": "5cceae5e701f5d0fb89ac9db",
     "Dynamic Discs": "5ca00775701f5d0ce4d92c0d",
     "Westside Discs": "5ca00825701f5d0ce4d92ceb",
