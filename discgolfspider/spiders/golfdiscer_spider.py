@@ -14,7 +14,7 @@ class GolfdiscerSpider(scrapy.Spider):
 
     for brand in brands:
       brand_path = brand.css("a::attr(href)").get()
-      brand_name = brand.css("a::text").get().rstrip("\n")
+      brand_name = brand.css("a::text").get().rstrip("\n").title()
 
       next_page = f"{self.start_urls[0]}{brand_path}"
 
