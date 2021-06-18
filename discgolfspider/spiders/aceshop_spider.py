@@ -18,7 +18,7 @@ class AceshopSpider(scrapy.Spider):
             disc["spider_name"] = self.name
             disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
             disc["retailer"] = self.allowed_domains[0]
-            disc["brand"] = product.css(".product::attr(data-manufacturer)").get()
+            disc["brand"] = product.css("p.manufacturers::text").get().strip().title()
             disc["price"] = int(product.css(".product-box::attr(data-price-including-tax)").get())
             
             flight_specs = product.css(".product_box_tag span::text").getall()
