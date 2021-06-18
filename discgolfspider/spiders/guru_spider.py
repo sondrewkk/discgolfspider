@@ -10,7 +10,7 @@ class GuruSpider(scrapy.Spider):
   def parse(self, response):
       for brand in response.css(".row.subcategories div"):
         next_page = brand.css("a::attr(href)").get(1)
-        brand_name = brand.css("a::text").get(1)
+        brand_name = brand.css("a::text").get(1).rstrip()
 
         if next_page is not None:
           yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand_name})
