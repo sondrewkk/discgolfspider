@@ -11,6 +11,7 @@ from .spiders.golfdiscer_spider import GolfdiscerSpider
 from .spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
 from .spiders.krokholdgs_spider import KrokholDgsSpider
 from .spiders.frisbeesor_spider import FrisbeesorSpider
+from .spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 
 
 settings = get_project_settings()
@@ -27,6 +28,7 @@ def crawl():
   yield runner.crawl(FrisbeebutikkenSpider)
   yield runner.crawl(KrokholDgsSpider)
   yield runner.crawl(FrisbeesorSpider)
+  yield runner.crawl(DiscgolfdynastySpider)
 
   return
 
