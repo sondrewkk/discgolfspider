@@ -9,18 +9,33 @@ import pymongo
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
 from scrapy.utils.log import logger
+from .helpers.brand_helper import BrandHelper
+from .items import DiscItem
+
 
 class DiscItemPipeline:
     def process_item(self, item, spider):
-        disc = ItemAdapter(item)
+        disc = DiscItem(item)
 
-        if not disc.get("name"):
-            raise DropItem(f"Missing name:\n {disc}")
+        if not disc["name"]:
+            raise DropItem(f"Missing name")
 
-        if disc.get("price") and disc.get("price") >= 500:
+        if disc["price"] and disc["price"] >= 500:
             raise DropItem(f"Probably not a disc. Price is to high")
 
         return item
+
+class DiscItemBrandPipeline:
+    def process_item(self, item, spider):
+        disc = DiscItem(item)
+        brand_normalized = BrandHelper.normalize(disc["brand"])
+
+        if not brand_normalized:
+            raise DropItem("Unkown brand name")
+
+        disc["brand"] = brand_normalized
+        
+        return disc
 
 class MongoDBPipeline:
     collection_name = "discs"

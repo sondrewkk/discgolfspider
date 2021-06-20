@@ -65,6 +65,7 @@ DOWNLOAD_DELAY = 1
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'discgolfspider.pipelines.DiscItemPipeline': 300,
+    'discgolfspider.pipelines.DiscItemBrandPipeline': 301,
     'discgolfspider.pipelines.MongoDBPipeline' : 400
 }
 
