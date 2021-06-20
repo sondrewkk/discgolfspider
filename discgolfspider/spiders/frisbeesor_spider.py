@@ -40,6 +40,8 @@ class FrisbeesorSpider(scrapy.Spider):
       
       if price:
         disc["price"] = int(price.strip().split(".")[0].replace(",", ""))
+      else:
+        disc["price"] = None
 
       yield disc
     
