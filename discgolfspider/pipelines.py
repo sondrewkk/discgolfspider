@@ -18,10 +18,13 @@ class DiscItemPipeline:
         disc = DiscItem(item)
 
         if not disc["name"]:
-            raise DropItem(f"Missing name")
+            raise DropItem("Missing name")
+
+        if not disc["price"]:
+            raise DropItem("No price on disc")
 
         if disc["price"] and disc["price"] >= 500:
-            raise DropItem(f"Probably not a disc. Price is to high")
+            raise DropItem("Probably not a disc. Price is to high")
 
         return item
 
