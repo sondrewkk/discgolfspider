@@ -22,9 +22,9 @@ class GuruSpider(scrapy.Spider):
     if has_subcategories:
       for category in response.css(".row.subcategories div"):
         next_page = category.css("a::attr(href)").get()
-        
+        is_duplicated = self.is_duplicated_category(next_page)
 
-        if next_page is not None:
+        if next_page is not None and not is_duplicated:
           yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
     else:
       for product in response.css(".product-layout"):
@@ -47,3 +47,10 @@ class GuruSpider(scrapy.Spider):
           disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
         
         yield disc 
+
+  def is_duplicated_category(self, category_link):
+    duplicated_categories = ["/glow", "/i-dye", "/overmold", "/burst", "/moonshine", "/retro"]
+    duplicated = any([category for category in duplicated_categories if category in category_link])
+
+    return duplicated
+    
