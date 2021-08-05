@@ -1,5 +1,4 @@
 import re
-
 class BrandHelper:
 
     brands = [
@@ -23,7 +22,9 @@ class BrandHelper:
         "Kastaplast",
         
         "Latitude 64",
+        "Launch",
         "Legacy Discs",
+        "Løft",
         
         "Millenium Discs",
         "MVP",
@@ -46,6 +47,9 @@ class BrandHelper:
 
     @classmethod
     def normalize(cls, brand_name: str) -> str:
+      if not brand_name:
+        return None
+
       brand_name = brand_name.split(" ")[0]
 
       # Special case for brand name TSA
@@ -54,7 +58,7 @@ class BrandHelper:
 
       index = [i for i, brand in enumerate(cls.brands) if re.search(f"^{brand_name.lower()}", brand.lower())]
 
-      if len(index) == 0:
+      if len(index) != 1:
         return None
 
       return cls.brands[index[0]]
