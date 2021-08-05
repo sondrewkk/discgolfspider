@@ -31,13 +31,14 @@ class DiscItemPipeline:
 class DiscItemBrandPipeline:
     def process_item(self, item, spider):
         disc = DiscItem(item)
-        brand_normalized = BrandHelper.normalize(disc["brand"])
 
+        brand_normalized = BrandHelper.normalize(disc["brand"])
+        
         if not brand_normalized:
-            raise DropItem("Unkown brand name")
+            spider.logger.warning(f"Could not scrape brand name ({ 'None' if not disc['brand'] else disc['brand']}) for disc with name {disc['name']}.")
 
         disc["brand"] = brand_normalized
-        
+
         return disc
 
 class MongoDBPipeline:
