@@ -31,10 +31,10 @@ class GolfdiscerSpider(scrapy.Spider):
       disc["brand"] = brand
       disc["retailer"] = self.allowed_domains[0]
       disc["price"] = int(product.css(".money::text").get().split(",")[0])
-      disc["speed"] = product.css(".flight-numbers > li span::text").get().strip()
-      disc["glide"] = product.css(".flight-numbers > li:nth-child(2)::text").get().strip()
-      disc["turn"] = product.css(".flight-numbers > li:nth-child(3)::text").get().strip()
-      disc["fade"] = product.css(".flight-numbers > li:nth-child(4)::text").get().strip()
+      disc["speed"] = float(product.css(".flight-numbers > li span::text").get().strip())
+      disc["glide"] = float(product.css(".flight-numbers > li:nth-child(2)::text").get().strip())
+      disc["turn"] = float(product.css(".flight-numbers > li:nth-child(3)::text").get().strip())
+      disc["fade"] = float(product.css(".flight-numbers > li:nth-child(4)::text").get().strip())
 
       url = product.css(".product-image > a::attr(href)").get()
       disc["url"] = f"{self.start_urls[0]}{url}"

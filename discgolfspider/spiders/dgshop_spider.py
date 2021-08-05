@@ -1,6 +1,7 @@
 from ..items import DiscItem
 
 import scrapy
+import re
 
 class DgshopSpider(scrapy.Spider):
   name = "dgshop"
@@ -35,7 +36,14 @@ class DgshopSpider(scrapy.Spider):
         disc["price"] = int(price.split(",")[0])
         
       if len(flight_specs) == 4:
+        flight_specs = [float(numeric_string.replace(",", ".")) for numeric_string in flight_specs]
         disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+      else:
+        self.logger.warning(f"Did not find flight spec for disc with name { disc['name'] }")
+        disc["speed"] = None
+        disc["glide"] = None
+        disc["turn"] = None
+        disc["fade"] = None
 
       yield disc
       

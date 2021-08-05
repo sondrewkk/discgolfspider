@@ -44,8 +44,15 @@ class GuruSpider(scrapy.Spider):
           disc["price"] = int(''.join(filter(str.isdigit, price.split(",")[0])))
 
         if len(flight_specs) == 4:
+          flight_specs = [float(numeric_string.replace(",", ".")) for numeric_string in flight_specs]
           disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
-        
+        else:
+          self.logger.warning(f"Did not find flight spec for disc with name { disc['name'] }")
+          disc["speed"] = None
+          disc["glide"] = None
+          disc["turn"] = None
+          disc["fade"] = None
+      
         yield disc 
 
   def is_duplicated_category(self, category_link):
