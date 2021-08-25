@@ -1,4 +1,4 @@
-from ..items import DiscItem
+from ..items import CreateDiscItem
 
 import scrapy
 import re
@@ -20,7 +20,7 @@ class DgshopSpider(scrapy.Spider):
   
   def parse_products(self, response, brand):
     for product in response.css(".product-item-info"):
-      disc = DiscItem()
+      disc = CreateDiscItem()
       disc["name"] = product.css(".product-image-photo::attr(alt)").get()
       disc["image"] = product.css(".product-image-photo::attr(src)").get()
       disc["url"] = product.css("a::attr(href)").get()

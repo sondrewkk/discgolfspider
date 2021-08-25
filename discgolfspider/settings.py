@@ -66,7 +66,7 @@ DOWNLOAD_DELAY = 1
 ITEM_PIPELINES = {
     'discgolfspider.pipelines.DiscItemPipeline': 300,
     'discgolfspider.pipelines.DiscItemBrandPipeline': 301,
-    'discgolfspider.pipelines.MongoDBPipeline' : 400
+    'discgolfspider.pipelines.UpdateDiscPipeline': 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -90,16 +90,22 @@ ITEM_PIPELINES = {
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-# MongoDB configuration
-MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
-MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))
-MONGO_DB = os.getenv("MONGO_DB", "discinstock")
-MONGO_NON_ROOT_USERNAME = os.getenv("MONGO_NON_ROOT_USERNAME")
-MONGO_NON_ROOT_PASSWORD_FILE = os.getenv("MONGO_NON_ROOT_PASSWORD_FILE")
 
-if MONGO_NON_ROOT_PASSWORD_FILE:
-    with open(MONGO_NON_ROOT_PASSWORD_FILE, "r") as file:
-        MONGO_NON_ROOT_PASSWORD = file.read()
+# API Configuration
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_USERNAME = "discinstock"
+API_PASSWORD = "Passw0rd"
+
+API_USERNAME_FILE = os.getenv("API_USERNAME_FILE")
+if API_USERNAME_FILE:
+    with open(API_USERNAME_FILE, "r") as file:
+        API_USERNAME = file.read()
+
+API_PASSWORD_FILE = os.getenv("API_PASSWORD_FILE")
+if API_PASSWORD_FILE:
+    with open(API_PASSWORD_FILE, "r") as file: 
+        API_PASSWORD = file.read()
+
 
 # Crawl interval
 CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL", 3600)) # One hour default

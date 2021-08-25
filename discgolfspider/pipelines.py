@@ -2,20 +2,16 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-
-import pymongo
-
-# useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
+from discgolfspider.discinstock_api import DiscinstockApi
+from discgolfspider.spiders.dgshop_spider import DgshopSpider
 from scrapy.exceptions import DropItem
-from scrapy.utils.log import logger
 from .helpers.brand_helper import BrandHelper
-from .items import DiscItem
+from .items import CreateDiscItem, DiscItem
 
 
 class DiscItemPipeline:
     def process_item(self, item, spider):
-        disc = DiscItem(item)
+        disc = CreateDiscItem(item)
 
         if not disc["name"]:
             raise DropItem("Missing name")
@@ -30,7 +26,7 @@ class DiscItemPipeline:
 
 class DiscItemBrandPipeline:
     def process_item(self, item, spider):
-        disc = DiscItem(item)
+        disc = CreateDiscItem(item)
 
         brand_normalized = BrandHelper.normalize(disc["brand"])
         
@@ -41,48 +37,82 @@ class DiscItemBrandPipeline:
 
         return disc
 
-class MongoDBPipeline:
-    collection_name = "discs"
-    new_discs = []
-
-    def __init__(self, mongo_host, mongo_port, mongo_db, mongo_user, mongo_user_password):
-        self.mongo_host=mongo_host
-        self.mongo_port=mongo_port
-        self.mongo_db=mongo_db
-        self.mongo_user=mongo_user
-        self.mongo_user_password=mongo_user_password
+class UpdateDiscPipeline:
+    def __init__(self, api_url, username, password) -> None:
+        self.discs = []
+        self.api: DiscinstockApi = DiscinstockApi(api_url, username, password)
 
     @classmethod
     def from_crawler(cls, crawler):
         return cls(
-            mongo_host=crawler.settings.get("MONGO_HOST"),
-            mongo_port=crawler.settings.get("MONGO_PORT"),
-            mongo_db=crawler.settings.get("MONGO_DB"),
-            mongo_user=crawler.settings.get("MONGO_NON_ROOT_USERNAME"),
-            mongo_user_password=crawler.settings.get("MONGO_NON_ROOT_PASSWORD")
+            api_url = crawler.settings.get("API_URL"),
+            username = crawler.settings.get("API_USERNAME"),
+            password = crawler.settings.get("API_PASSWORD"),   
         )
-    
-    def open_spider(self, spider):
-        logger.info(f"Crawling {spider.name}")
 
-        if self.mongo_user:
-            self.client = pymongo.MongoClient(host=self.mongo_host, port=self.mongo_port, username=self.mongo_user, password=self.mongo_user_password, authSource=self.mongo_db)
+    def open_spider(self, spider: DgshopSpider):
+        self.spider = spider
+       
+        current_discs = self.api.fetch_discs(spider.name)
+        if current_discs:
+            self.discs = current_discs
+        
+
+    def close_spider(self, spider: DgshopSpider):
+        # Remaining discs is not in stock any more
+        for disc in self.discs:
+            id = disc['_id']
+            updated = self.api.patch_disc(id, {"in_stock": False})
+
+            if not updated:
+                spider.logger.error("Could not change instock for {id}")
+
+        # Clear all discs for next scraping
+        self.discs.clear()
+
+
+    def process_item(self, item: CreateDiscItem, spider: DgshopSpider):
+        disc_item: CreateDiscItem = item
+        existsing_disc_item = self.get_existing_disc_item(disc_item)
+
+        if not existsing_disc_item:
+            disc: DiscItem = self.api.add_disc(disc_item)
         else:
-            self.client = pymongo.MongoClient(host=self.mongo_host, port=self.mongo_port)
+            disc: DiscItem = self.update_disc(disc_item, existsing_disc_item)
+            self.discs = list(filter(lambda disc: disc['_id'] != existsing_disc_item['_id'], self.discs))
 
-        self.db = self.client[self.mongo_db]
+        return disc
 
-    def close_spider(self, spider):
-        discs = self.db[self.collection_name]
-        
-        discs.delete_many({"spider_name": spider.name})
-        discs.insert_many(self.new_discs)
-        self.new_discs.clear()
-        
-        self.client.close()
 
-    def process_item(self, item, spider):
-        disc = ItemAdapter(item).asdict()
-        self.new_discs.append(disc)
+    def get_existing_disc_item(self, disc_item: CreateDiscItem) -> DiscItem:
+        if not self.discs:
+            return None
+
+        existing_disc: DiscItem = next((d for d in self.discs if d['name'] == disc_item['name']), None)
+        return existing_disc
         
-        return item
+
+    def update_disc(self, disc: CreateDiscItem, current_disc: DiscItem) -> DiscItem:
+        disc_difference = self.get_disc_difference(disc, current_disc)
+        id = current_disc['_id']
+        
+        if not disc_difference:
+            self.spider.logger.info(f"Disc {id} has nothing to update.")
+            return disc
+    
+        updated_disc: DiscItem = self.api.patch_disc(id, disc_difference)
+        return updated_disc
+
+
+    def get_disc_difference(self, disc: CreateDiscItem, current_disc: DiscItem) -> dict:
+        difference = {}
+
+        for k, v in current_disc.items():
+            if k in disc:
+                equal: bool = disc[k] == v
+
+                if not equal:
+                    difference[k] = disc[k]
+
+        return difference
+
