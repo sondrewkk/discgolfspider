@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "discgolfspider"
-version = "1.0.8"
+version = "1.1.0"
 description = "A spider that fetches information about golf discs on different norwegian online discgolf retailers"
 authors = ["Sondre William Kaldhussæter-Knutsen <knutsensondre@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 Scrapy = "^2.4.1"
-pymongo = "^3.11.3"
+requests = "^2.26.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
