@@ -1,4 +1,4 @@
-from ..items import DiscItem
+from ..items import CreateDiscItem
 
 import scrapy
 
@@ -23,7 +23,7 @@ class GolfdiscerSpider(scrapy.Spider):
 
   def parse_products(self, response, brand):
     for product in response.css(".product-inner"):
-      disc = DiscItem()
+      disc = CreateDiscItem()
       disc["name"] = product.css(".product-loop-title > h3::text").get().strip()
       disc["image"] = product.css(".product-image img::attr(data-src)").get()
       disc["in_stock"] = product.css(".add-links-wrap span::text").get() != "Utsolgt"

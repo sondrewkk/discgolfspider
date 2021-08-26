@@ -1,4 +1,4 @@
-from ..items import DiscItem
+from ..items import CreateDiscItem
 
 import scrapy
 
@@ -28,7 +28,7 @@ class GuruSpider(scrapy.Spider):
           yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
     else:
       for product in response.css(".product-layout"):
-        disc = DiscItem()
+        disc = CreateDiscItem()
         disc["name"] = product.css(".img-responsive::attr(alt)").get()
         disc["image"] = product.css(".img-responsive::attr(src)").get()
         disc["in_stock"] = product.css(".stock-status::text").get() != "Utsolgt"

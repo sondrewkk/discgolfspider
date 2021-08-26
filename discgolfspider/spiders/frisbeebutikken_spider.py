@@ -1,5 +1,4 @@
-from ..items import DiscItem
-from scrapy.utils.response import open_in_browser
+from ..items import CreateDiscItem
 from urllib.parse import parse_qs, urlparse
 
 import scrapy
@@ -36,7 +35,7 @@ class FrisbeebutikkenSpider(scrapy.Spider):
     brand_name = self.get_brand(brand_id)
 
     for product in products:
-      disc = DiscItem()
+      disc = CreateDiscItem()
       disc["name"] = product["title"]
       disc["url"] = product["urls"]["full"]
       disc["image"] = product["featured_image"]["original"]

@@ -1,4 +1,3 @@
-import importlib
 from twisted.internet import reactor, defer, task
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
@@ -15,8 +14,8 @@ from .spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 
 
 settings = get_project_settings()
-
 configure_logging({"LOG_LEVEL": settings.get("LOG_LEVEL")})
+
 runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
@@ -37,7 +36,7 @@ def cb_loop_done(result):
   reactor.stop()
 
 def cb_loop_error(failure):
-  logger.error(failure.getBriefTraceback())
+  logger.error(failure)
   reactor.stop()
 
 def start():  

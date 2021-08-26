@@ -1,4 +1,4 @@
-from ..items import DiscItem
+from ..items import CreateDiscItem
 
 import scrapy
 
@@ -23,7 +23,7 @@ class DiscgolfdynastySpider(scrapy.Spider):
 
   def parse_products(self, response, brand):
     for product in response.css(".product-grid-item"):
-      disc = DiscItem()
+      disc = CreateDiscItem()
       disc["name"] = product.css("p::text").get().split(" ", 1)[1]     
       disc["image"] = product.css("img::attr(src)").get()
       disc["spider_name"] = self.name
@@ -41,6 +41,9 @@ class DiscgolfdynastySpider(scrapy.Spider):
       url = product.css("a::attr(href)").get()
       disc["url"] = f"{self.start_urls[0]}{url}"
       
+      if not disc["image"]:
+        disc["image"] = "https://via.placeholder.com/300"
+
       yield disc
     
     next_page = response.css(".pagination-custom a[title='Neste »']::attr(href)").get()

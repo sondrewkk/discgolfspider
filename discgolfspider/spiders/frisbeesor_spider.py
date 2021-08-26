@@ -1,4 +1,4 @@
-from ..items import DiscItem
+from ..items import CreateDiscItem
 
 import scrapy
 
@@ -23,7 +23,7 @@ class FrisbeesorSpider(scrapy.Spider):
 
   def parse_products(self, response, brand):
     for product in response.css(".product_item"):
-      disc = DiscItem()
+      disc = CreateDiscItem()
       disc["name"] = product.css(".product_archive_title::text").get().lower().title()
       disc["image"] = product.css(".kt-product-animation-contain img::attr(src)").get()
       disc["in_stock"] = product.css(".kad-out-of-stock::text").get() != "utsolgt"

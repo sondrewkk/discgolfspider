@@ -1,4 +1,4 @@
-from ..items import DiscItem
+from ..items import CreateDiscItem
 
 import scrapy
 
@@ -14,7 +14,7 @@ class KrokholDgsSpider(scrapy.Spider):
 
     def parse(self, response):
         for product in response.css(".product-box-wrapper"):
-            disc = DiscItem()
+            disc = CreateDiscItem()
             disc["name"] = product.css(".product_box_title_row a::text").get()
             disc["image"] = product.css(".image img::attr(src)").get()
             disc["url"] = product.css(".product_box_title_row a::attr(href)").get()
