@@ -3,7 +3,6 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 from discgolfspider.discinstock_api import DiscinstockApi
-from discgolfspider.spiders.dgshop_spider import DgshopSpider
 from scrapy.exceptions import DropItem
 from .helpers.brand_helper import BrandHelper
 from .items import CreateDiscItem, DiscItem
@@ -50,15 +49,16 @@ class UpdateDiscPipeline:
             password = crawler.settings.get("API_PASSWORD"),   
         )
 
-    def open_spider(self, spider: DgshopSpider):
+    def open_spider(self, spider):
         self.spider = spider
        
         current_discs = self.api.fetch_discs(spider.name)
+        spider.logger.info(f"{len(current_discs)}")
         if current_discs:
             self.discs = current_discs
         
 
-    def close_spider(self, spider: DgshopSpider):
+    def close_spider(self, spider):
         # Remaining discs is not in stock any more
         for disc in self.discs:
             id = disc['_id']
@@ -71,13 +71,19 @@ class UpdateDiscPipeline:
         self.discs.clear()
 
 
-    def process_item(self, item: CreateDiscItem, spider: DgshopSpider):
+    def process_item(self, item: CreateDiscItem, spider):
         disc_item: CreateDiscItem = item
         existsing_disc_item = self.get_existing_disc_item(disc_item)
 
+        if existsing_disc_item:
+            spider.logger.info(existsing_disc_item)
+        
+
         if not existsing_disc_item:
+            spider.logger.info(f"creating disc: {disc_item['name']}")
             disc: DiscItem = self.api.add_disc(disc_item)
         else:
+            spider.logger.info(f"{existsing_disc_item['name']}")
             disc: DiscItem = self.update_disc(disc_item, existsing_disc_item)
             self.discs = list(filter(lambda disc: disc['_id'] != existsing_disc_item['_id'], self.discs))
 
