@@ -6,6 +6,7 @@ class BrandHelper:
         "Axiom",
         
         "Dino Discs",
+        "Disc Golf UK",
         "Discmania",
         "Disctroyer",
         "Discraft",
@@ -51,14 +52,16 @@ class BrandHelper:
       if not brand_name:
         return None
 
-      brand_name = brand_name.split(" ")[0]
+      brand_name = brand_name.split(" ")[0].lower()
 
       # Special case for brand name TSA
-      if brand_name.lower() == "tsa":
+      if brand_name == "tsa":
         return "Thought Space Athletics"
+      
+      if brand_name == "disc":
+        return "Disc Golf UK"
 
-      index = [i for i, brand in enumerate(cls.brands) if re.search(f"^{brand_name.lower()}", brand.lower())]
-
+      index = [i for i, brand in enumerate(cls.brands) if re.search(f"^{brand_name}", brand.lower())]
       if len(index) != 1:
         return None
 
