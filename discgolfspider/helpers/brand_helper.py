@@ -1,10 +1,11 @@
 import re
+
+
 class BrandHelper:
 
     brands = [
         "Alfa",
         "Axiom",
-        
         "Dino Discs",
         "Disc Golf UK",
         "Discmania",
@@ -12,57 +13,44 @@ class BrandHelper:
         "Discraft",
         "Divergent Discs",
         "Dynamic Discs",
-        
         "EV-7",
-        
         "Gateway Discs",
         "Guru",
-        
         "Innova",
         "Infinite Discs",
-
         "Kastaplast",
-        
         "Latitude 64",
         "Launch",
         "Legacy Discs",
         "Løft",
-        
         "Millenium Discs",
         "MVP",
-
         "Prodigy",
         "Prodiscus",
-
         "RPM Discs",
-        
         "Streamline",
-        
         "Thought Space Athletics",
-        
         "Viking Discs",
-        
         "Westside Discs",
-
         "Yikun Discs",
     ]
 
     @classmethod
     def normalize(cls, brand_name: str) -> str:
-      if not brand_name:
-        return None
+        if not brand_name:
+            return None
 
-      brand_name = brand_name.split(" ")[0].lower()
+        brand_name = brand_name.split(" ")[0].lower()
 
-      # Special case for brand name TSA
-      if brand_name == "tsa":
-        return "Thought Space Athletics"
-      
-      if brand_name == "disc":
-        return "Disc Golf UK"
+        # Special case for brand name TSA
+        if brand_name == "tsa":
+            return "Thought Space Athletics"
 
-      index = [i for i, brand in enumerate(cls.brands) if re.search(f"^{brand_name}", brand.lower())]
-      if len(index) != 1:
-        return None
+        if brand_name == "disc":
+            return "Disc Golf UK"
 
-      return cls.brands[index[0]]
+        index = [i for i, brand in enumerate(cls.brands) if re.search(f"^{brand_name}", brand.lower())]
+        if len(index) != 1:
+            return None
+
+        return cls.brands[index[0]]

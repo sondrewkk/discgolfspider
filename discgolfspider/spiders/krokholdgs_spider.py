@@ -2,6 +2,7 @@ from ..items import CreateDiscItem
 
 import scrapy
 
+
 class KrokholDgsSpider(scrapy.Spider):
     name = "krokholdgs"
     allowed_domains = ["krokholdgs.no"]
@@ -27,12 +28,10 @@ class KrokholDgsSpider(scrapy.Spider):
             disc["glide"] = None
             disc["turn"] = None
             disc["fade"] = None
-            
+
             yield disc
 
         next_page = response.css(".paginator_link_next::attr(href)").get()
 
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
-
-    

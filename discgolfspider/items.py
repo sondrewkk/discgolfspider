@@ -26,6 +26,7 @@ class DiscItem(scrapy.Item):
     def dict(self):
         return self.__dict__["_values"]
 
+
 class CreateDiscItem(scrapy.Item):
     name = scrapy.Field()
     image = scrapy.Field()

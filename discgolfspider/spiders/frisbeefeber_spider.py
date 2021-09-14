@@ -2,12 +2,11 @@ from ..items import CreateDiscItem
 
 import scrapy
 
+
 class FrisbeefeberSpider(scrapy.Spider):
     name = "frisbeefeber"
     allowed_domains = ["frisbeefeber.no"]
-    start_urls = [
-        "https://www.frisbeefeber.no/brands"
-    ]
+    start_urls = ["https://www.frisbeefeber.no/brands"]
 
     def parse(self, response):
         brands = response.css(".box .row")
@@ -15,11 +14,14 @@ class FrisbeefeberSpider(scrapy.Spider):
         for brand in brands:
             brand_name = brand.css("a::text").get()
             next_page = brand.css("a::attr(href)").get()
-            
-            if next_page is not None:
-                yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand_name})
 
-  
+            if next_page is not None:
+                yield response.follow(
+                    next_page,
+                    callback=self.parse_products,
+                    cb_kwargs={"brand": brand_name},
+                )
+
     def parse_products(self, response, brand):
         products = response.css(".product-box")
 
@@ -32,7 +34,7 @@ class FrisbeefeberSpider(scrapy.Spider):
             disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
             disc["retailer"] = self.allowed_domains[0]
             disc["brand"] = brand
-            
+
             price = product.css(".price::text").get()
             if price:
                 disc["price"] = int(price.strip().replace(".", "").split(",")[0])
@@ -41,11 +43,10 @@ class FrisbeefeberSpider(scrapy.Spider):
             disc["glide"] = None
             disc["turn"] = None
             disc["fade"] = None
-        
+
             yield disc
-    
+
         next_page = response.css(".paginator_link_next::attr(href)").get()
 
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
-  

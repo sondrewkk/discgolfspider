@@ -19,39 +19,44 @@ configure_logging({"LOG_LEVEL": settings.get("LOG_LEVEL")})
 
 runner = CrawlerRunner(settings)
 
+
 @defer.inlineCallbacks
 def crawl():
-  yield runner.crawl(DgshopSpider)
-  yield runner.crawl(GuruSpider)
-  yield runner.crawl(AceshopSpider)
-  yield runner.crawl(GolfdiscerSpider)
-  yield runner.crawl(FrisbeebutikkenSpider)
-  yield runner.crawl(KrokholDgsSpider)
-  yield runner.crawl(FrisbeesorSpider)
-  yield runner.crawl(DiscgolfdynastySpider)
-  yield runner.crawl(FrisbeefeberSpider)
+    yield runner.crawl(DgshopSpider)
+    yield runner.crawl(GuruSpider)
+    yield runner.crawl(AceshopSpider)
+    yield runner.crawl(GolfdiscerSpider)
+    yield runner.crawl(FrisbeebutikkenSpider)
+    yield runner.crawl(KrokholDgsSpider)
+    yield runner.crawl(FrisbeesorSpider)
+    yield runner.crawl(DiscgolfdynastySpider)
+    yield runner.crawl(FrisbeefeberSpider)
 
-  return
+    return
+
 
 def cb_loop_done(result):
-  logger.info(f"Crawl done. Result: \n {result}")
-  reactor.stop()
+    logger.info(f"Crawl done. Result: \n {result}")
+    reactor.stop()
+
 
 def cb_loop_error(failure):
-  logger.error(failure)
-  reactor.stop()
+    logger.error(failure)
+    reactor.stop()
 
-def start():  
-  logger.info(f"Crawl process is starting.")
-  
-  loop = task.LoopingCall(crawl)
-  interval = settings["CRAWL_INTERVAL"]
 
-  loopDeferred = loop.start(interval)
-  loopDeferred.addCallback(cb_loop_done)
-  loopDeferred.addErrback(cb_loop_error)
+def start():
+    logger.info(f"Crawl process is starting.")
 
-  reactor.run() # Blocks until last crawl is finished
+    loop = task.LoopingCall(crawl)
+    interval = settings["CRAWL_INTERVAL"]
+
+    loopDeferred = loop.start(interval)
+    loopDeferred.addCallback(cb_loop_done)
+    loopDeferred.addErrback(cb_loop_error)
+
+    reactor.run()  # Blocks until last crawl is finished
+
 
 if __name__ == "__main__":
-  start()
+    start()
