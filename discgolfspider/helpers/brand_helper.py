@@ -13,6 +13,7 @@ class BrandHelper:
         "Discraft",
         "Divergent Discs",
         "Dynamic Discs",
+        "Elevation",
         "EV-7",
         "Gateway Discs",
         "Guru",
