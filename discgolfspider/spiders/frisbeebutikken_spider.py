@@ -3,7 +3,6 @@ from urllib.parse import parse_qs, urlparse
 
 import scrapy
 
-
 class FrisbeebutikkenSpider(scrapy.Spider):
     name = "frisbeebutikken"
     allowed_domains = ["frisbeebutikken.no", "app.selz.com"]
@@ -40,7 +39,6 @@ class FrisbeebutikkenSpider(scrapy.Spider):
             disc["name"] = product["title"]
             disc["url"] = product["urls"]["full"]
             disc["image"] = product["featured_image"]["original"]
-            disc["in_stock"] = product["is_sold_out"] == False
             disc["spider_name"] = self.name
             disc["brand"] = brand_name
             disc["retailer"] = self.allowed_domains[0]
@@ -49,6 +47,13 @@ class FrisbeebutikkenSpider(scrapy.Spider):
             disc["glide"] = None
             disc["turn"] = None
             disc["fade"] = None
+
+            quantity = product["quantity_available"]
+
+            if quantity:
+                disc["in_stock"] = quantity > 0
+            else:
+                disc["in_stock"] = False or not product["is_sold_out"]
 
             yield disc
 

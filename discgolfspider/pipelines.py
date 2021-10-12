@@ -57,7 +57,6 @@ class UpdateDiscPipeline:
         self.spider = spider
 
         current_discs = self.api.fetch_discs(spider.name)
-        spider.logger.info(f"{len(current_discs)}")
         if current_discs:
             self.discs = current_discs
 
@@ -77,14 +76,9 @@ class UpdateDiscPipeline:
         disc_item: CreateDiscItem = item
         existsing_disc_item = self.get_existing_disc_item(disc_item)
 
-        if existsing_disc_item:
-            spider.logger.info(existsing_disc_item)
-
         if not existsing_disc_item:
-            spider.logger.info(f"creating disc: {disc_item['name']}")
             disc: DiscItem = self.api.add_disc(disc_item)
         else:
-            spider.logger.info(f"{existsing_disc_item['name']}")
             disc: DiscItem = self.update_disc(disc_item, existsing_disc_item)
             self.discs = list(filter(lambda disc: disc["_id"] != existsing_disc_item["_id"], self.discs))
 
