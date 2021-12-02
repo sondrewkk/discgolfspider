@@ -3,15 +3,15 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 from scrapy.utils.log import logger, configure_logging
 
-from .spiders.dgshop_spider import DgshopSpider
-from .spiders.guru_spider import GuruSpider
-from .spiders.aceshop_spider import AceshopSpider
-from .spiders.golfdiscer_spider import GolfdiscerSpider
-from .spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
-from .spiders.krokholdgs_spider import KrokholDgsSpider
-from .spiders.frisbeesor_spider import FrisbeesorSpider
-from .spiders.discgolfdynasty_spider import DiscgolfdynastySpider
-from .spiders.frisbeefeber_spider import FrisbeefeberSpider
+from discgolfspider.spiders.dgshop_spider import DgshopSpider
+from discgolfspider.spiders.guru_spider import GuruSpider
+from discgolfspider.spiders.aceshop_spider import AceshopSpider
+from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
+from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
+from discgolfspider.spiders.krokholdgs_spider import KrokholDgsSpider
+from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
+from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
+from discgolfspider.spiders.frisbeefeber_spider import FrisbeefeberSpider
 
 
 settings = get_project_settings()
