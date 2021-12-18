@@ -1,4 +1,4 @@
-FROM noddi89/poetry-base:1.1.11-3.10 as base
+FROM poetry-base:3.10.1-1.1.12 as base
 ENV PYSETUP_PATH="/opt/pysetup" \
     VENV_PATH="/opt/pysetup/.venv" 
 
@@ -9,7 +9,7 @@ COPY ./poetry.lock ./pyproject.toml ./
 RUN poetry install --no-dev
 
 
-FROM python:3.10.0-slim-bullseye as production
+FROM python:3.10.1-slim-bullseye as production
 
 # Venv into image
 COPY --from=base $VENV_PATH $VENV_PATH
@@ -22,4 +22,4 @@ COPY ./discgolfspider /discgolfspider
 WORKDIR /
 
 ENTRYPOINT /docker-entrypoint.sh $0 $@
-#CMD ["python", "discgolfspider/main.py"]
+CMD ["python", "discgolfspider/main.py"]
