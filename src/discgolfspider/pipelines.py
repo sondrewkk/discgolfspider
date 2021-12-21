@@ -4,8 +4,8 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 from discgolfspider.discinstock_api import DiscinstockApi
 from scrapy.exceptions import DropItem
-from .helpers.brand_helper import BrandHelper
-from .items import CreateDiscItem, DiscItem
+from discgolfspider.helpers.brand_helper import BrandHelper
+from discgolfspider.items import CreateDiscItem, DiscItem
 
 
 class DiscItemPipeline:

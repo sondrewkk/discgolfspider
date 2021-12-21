@@ -1,4 +1,4 @@
-from ..items import CreateDiscItem
+from discgolfspider.items import CreateDiscItem
 
 import scrapy
 

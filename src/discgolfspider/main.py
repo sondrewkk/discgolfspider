@@ -3,8 +3,8 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 from scrapy.utils.log import logger, configure_logging
 
-from discgolfspider.spiders.dgshop_spider import DgshopSpider
 from discgolfspider.spiders.guru_spider import GuruSpider
+from discgolfspider.spiders.dgshop_spider import DgshopSpider
 from discgolfspider.spiders.aceshop_spider import AceshopSpider
 from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
 from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
@@ -47,6 +47,7 @@ def cb_loop_error(failure):
 
 def start():
     logger.info(f"Crawl process is starting.")
+    logger.info(f"iterval: {settings.get('CRAWL_INTERVAL')}")
 
     loop = task.LoopingCall(crawl)
     interval = settings["CRAWL_INTERVAL"]

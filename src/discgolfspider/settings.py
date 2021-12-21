@@ -91,6 +91,8 @@ ITEM_PIPELINES = {
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+# Crawl interval
+CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL", 3600))  # One hour default
 
 # API Configuration
 API_URL = os.getenv("API_URL", "http://localhost:8000")
@@ -108,8 +110,7 @@ if API_PASSWORD_FILE:
         API_PASSWORD = file.read()
 
 
-# Crawl interval
-CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL", 3600))  # One hour default
+
 
 # Logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")

@@ -1,5 +1,5 @@
 import requests
-from discgolfspider.items import CreateDiscItem, DiscItem
+from .items import CreateDiscItem, DiscItem
 from scrapy.exceptions import CloseSpider
 from scrapy.utils.log import logger
 

@@ -18,8 +18,11 @@ COPY --from=base $VENV_PATH $VENV_PATH
 COPY ./docker/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-COPY ./discgolfspider /discgolfspider
+ENV PYTHONPATH "${PYTHONPATH}:/discgolfspider"
+COPY ./src/discgolfspider /discgolfspider
+
 WORKDIR /
 
-ENTRYPOINT /docker-entrypoint.sh $0 $@
-CMD ["python", "discgolfspider/main.py"]
+
+#ENTRYPOINT /docker-entrypoint.sh $0 $@
+#CMD ["python", "discgolfspider/main.py"]
