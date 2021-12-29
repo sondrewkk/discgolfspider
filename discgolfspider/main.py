@@ -47,7 +47,6 @@ def cb_loop_error(failure):
 
 def start():
     logger.info(f"Crawl process is starting.")
-    logger.info(f"iterval: {settings.get('CRAWL_INTERVAL')}")
 
     loop = task.LoopingCall(crawl)
     interval = settings["CRAWL_INTERVAL"]
@@ -57,7 +56,6 @@ def start():
     loopDeferred.addErrback(cb_loop_error)
 
     reactor.run()  # Blocks until last crawl is finished
-
 
 if __name__ == "__main__":
     start()

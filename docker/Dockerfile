@@ -1,28 +1,28 @@
-FROM poetry-base:3.10.1-1.1.12 as base
-ENV PYSETUP_PATH="/opt/pysetup" \
-    VENV_PATH="/opt/pysetup/.venv" 
+FROM python:3.10 as req-stage
 
-# We copy our Python requirements here to cache themp
-# and install only runtime deps using poetry
-WORKDIR $PYSETUP_PATH
-COPY ./poetry.lock ./pyproject.toml ./
-RUN poetry install --no-dev
+WORKDIR /tmp
 
+RUN pip install poetry
 
-FROM python:3.10.1-slim-bullseye as production
+COPY ./pyproject.toml ./poetry.lock* /tmp/
 
-# Venv into image
-COPY --from=base $VENV_PATH $VENV_PATH
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-# Copying in our entrypoint
-COPY ./docker/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+FROM python:3.10-slim
 
+WORKDIR /discgolfspider
 ENV PYTHONPATH "${PYTHONPATH}:/discgolfspider"
-COPY ./src/discgolfspider /discgolfspider
 
-WORKDIR /
+COPY --from=req-stage /tmp/requirements.txt /discgolfspider/requirements.txt
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc build-essential libxml2-dev libxslt-dev python3-dev libffi-dev libssl-dev\
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install cryptography \
+    && pip install --no-cache-dir --upgrade -r /discgolfspider/requirements.txt \
+    && apt-get purge -y --auto-remove gcc build-essential libxml2-dev libxslt-dev python3-dev libffi-dev libssl-dev 
 
-#ENTRYPOINT /docker-entrypoint.sh $0 $@
-#CMD ["python", "discgolfspider/main.py"]
+COPY ./discgolfspider /discgolfspider/discgolfspider
+COPY ./scrapy.cfg /discgolfspider/scrapy.cfg
+
+CMD ["python", "discgolfspider/main.py"]

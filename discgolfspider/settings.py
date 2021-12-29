@@ -109,8 +109,5 @@ if API_PASSWORD_FILE:
     with open(API_PASSWORD_FILE, "r") as file:
         API_PASSWORD = file.read()
 
-
-
-
 # Logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
