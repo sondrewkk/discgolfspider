@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "discgolfspider"
-version = "1.1.6"
+version = "1.1.7"
 description = "A spider that fetches information about golf discs on different norwegian online discgolf retailers"
 authors = ["Sondre William Kaldhussæter-Knutsen <knutsensondre@gmail.com>"]
 
