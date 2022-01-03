@@ -95,7 +95,7 @@ ITEM_PIPELINES = {
 CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL", 3600))  # One hour default
 
 # API Configuration
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL", "http://localhost:8080")
 API_USERNAME = "discinstock"
 API_PASSWORD = "Passw0rd"
 
