@@ -9,11 +9,11 @@ class FrisbeesorSpider(scrapy.Spider):
     start_urls = ["https://www.frisbeesor.no/produktkategori/merker/"]
 
     def parse(self, response):
-        brands = response.css(".cat-item-133 > ul li")[1:]
+        brands = response.css(".product-category")
 
         for brand in brands:
             brand_path = brand.css("a::attr(href)").get()
-            brand_name = brand.css("a::text").get()
+            brand_name = brand.css("h5::text").get().strip()
 
             next_page = f"{brand_path}"
 
@@ -25,12 +25,19 @@ class FrisbeesorSpider(scrapy.Spider):
                 )
 
     def parse_products(self, response, brand):
-        for product in response.css(".product_item"):
+        
+        non_valid_categories = ["product_cat-kurver", "product_cat-tilbehor", "product_cat-sekker"]
+        products = response.css(".product")
+
+        # Remove products that has a category tha is not valid, represented by non_valid_categories array
+        products = [p for p in products if not [True for c in non_valid_categories if c in p.attrib['class']]]
+
+        for product in products:
             disc = CreateDiscItem()
-            disc["name"] = product.css(".product_archive_title::text").get().lower().title()
-            disc["image"] = product.css(".kt-product-animation-contain img::attr(src)").get()
-            disc["in_stock"] = product.css(".kad-out-of-stock::text").get() != "utsolgt"
-            disc["url"] = product.css(".product_item_link::attr(href)").get()
+            disc["name"] = product.css(".name > a::text").get().lower().title()
+            disc["image"] = product.css('img::attr(src)').get()
+            disc["in_stock"] = True
+            disc["url"] = product.css('a::attr(href)').get()
             disc["spider_name"] = self.name
             disc["brand"] = brand
             disc["retailer"] = self.allowed_domains[0]
@@ -39,16 +46,16 @@ class FrisbeesorSpider(scrapy.Spider):
             disc["turn"] = None
             disc["fade"] = None
 
-            price = product.css(".amount > bdi::text").get()
+            price = product.css('.price bdi::text').get()
 
             if price:
-                disc["price"] = int(price.strip().split(".")[0].replace(",", ""))
+                disc["price"] = int(price.split(".")[0])
             else:
                 disc["price"] = None
 
             yield disc
 
-        next_page = response.css("a.next::attr(href)").get()
+        next_page = response.css('a.next::attr(href)').get()
 
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})

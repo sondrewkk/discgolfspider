@@ -4,7 +4,7 @@ import re
 class BrandHelper:
 
     brands = [
-        "Alfa",
+        "Alfa Discs",
         "Axiom",
         "Dino Discs",
         "Disc Golf UK",
