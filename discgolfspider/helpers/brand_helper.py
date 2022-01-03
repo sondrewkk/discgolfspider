@@ -33,6 +33,7 @@ class BrandHelper:
         "Thought Space Athletics",
         "Viking Discs",
         "Westside Discs",
+        "X-COM",
         "Yikun Discs",
     ]
 
