@@ -25,6 +25,7 @@ class BrandHelper:
         "Legacy Discs",
         "Løft",
         "Millenium Discs",
+        "Momentum Disc Golf",
         "MVP",
         "Prodigy",
         "Prodiscus",
