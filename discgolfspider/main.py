@@ -23,7 +23,7 @@ runner = CrawlerRunner(settings)
 @defer.inlineCallbacks
 def crawl():
     yield runner.crawl(DgshopSpider)
-    yield runner.crawl(GuruSpider)
+    #yield runner.crawl(GuruSpider) TODO: Legg til ny side
     yield runner.crawl(AceshopSpider)
     yield runner.crawl(GolfdiscerSpider)
     yield runner.crawl(FrisbeebutikkenSpider)

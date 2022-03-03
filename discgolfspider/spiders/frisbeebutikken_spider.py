@@ -5,65 +5,34 @@ import scrapy
 
 class FrisbeebutikkenSpider(scrapy.Spider):
     name = "frisbeebutikken"
-    allowed_domains = ["frisbeebutikken.no", "app.selz.com"]
-    start_urls = [
-        "https://app.selz.com/sdk/products/all/181662?q=&c=5ca31978701f5d0dd4dc0b22&p=1",  # Discmania
-        "https://app.selz.com/sdk/products/all/181662?q=&c=5ca006f9701f5d08f01a44ff&p=1",  # Innova
-        "https://app.selz.com/sdk/products/all/181662?q=&c=5ca00656701f5d08f01a43fb&p=1",  # Latitude64
-        "https://app.selz.com/sdk/products/all/181662?q=&c=5cceae5e701f5d0fb89ac9db&p=1",  # Discraft
-        "https://app.selz.com/sdk/products/all/181662?q=&c=5ca00775701f5d0ce4d92c0d&p=1",  # Dynamic discs
-        "https://app.selz.com/sdk/products/all/181662?q=&c=5ca00825701f5d0ce4d92ceb&p=1",  # Westside discs
-    ]
+    allowed_domains = ["shop.frisbeebutikken.no"]
+    start_urls = ["https://shop.frisbeebutikken.no/categories/golfdisker"]
 
-    brand_map = {
-        "Discmania": "5ca31978701f5d0dd4dc0b22",
-        "Innova": "5ca006f9701f5d08f01a44ff",
-        "Latitude 64": "5ca00656701f5d08f01a43fb",
-        "Discraft": "5cceae5e701f5d0fb89ac9db",
-        "Dynamic Discs": "5ca00775701f5d0ce4d92c0d",
-        "Westside Discs": "5ca00825701f5d0ce4d92ceb",
-    }
 
     def parse(self, response):
-        data = response.json()["data"]
-        products = data["products"]
-        current_page = data["page"]
-        pages = data["pages"]
-
-        url = urlparse(response.url)
-        brand_id = parse_qs(url.query)["c"][0]
-        brand_name = self.get_brand(brand_id)
-
-        for product in products:
+        for product in response.css(".product-box"):
             disc = CreateDiscItem()
-            disc["name"] = product["title"]
-            disc["url"] = product["urls"]["full"]
-            disc["image"] = product["featured_image"]["original"]
+            disc["name"] = product.css(".title::text").get()
+            disc["image"] = product.css(".image-mainimage img::attr(src)").get()
+            disc["url"] = product.css(".product_box_title_row a::attr(href)").get()
             disc["spider_name"] = self.name
-            disc["brand"] = brand_name
-            disc["retailer"] = self.allowed_domains[0]
-            disc["price"] = int(product["price"])
+            disc["brand"] = product.css(".manufacturer-box img::attr(alt)").get()
+            disc["retailer"] = "frisbeebutikken.no"
+            disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
             disc["speed"] = None
             disc["glide"] = None
             disc["turn"] = None
             disc["fade"] = None
 
-            quantity = product["quantity_available"]
+            disc["price"] = None
+            price = product.css(".price::text").get()
 
-            if quantity:
-                disc["in_stock"] = quantity > 0
-            else:
-                disc["in_stock"] = False or not product["is_sold_out"]
+            if price:
+                disc["price"] = int(price.strip().split(",")[0])
 
             yield disc
 
-        if current_page < pages:
-            next_page = response.url.replace(f"p={ current_page }", f"p={ current_page + 1 }")
+        next_page = response.css(".paginator_link_next::attr(href)").get()
+
+        if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
-
-    def get_brand(self, id: str):
-        for key, value in self.brand_map.items():
-            if id == value:
-                return key
-
-        return ""
