@@ -3,7 +3,7 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 from scrapy.utils.log import logger, configure_logging
 
-from discgolfspider.spiders.guru_spider import GuruSpider
+#from discgolfspider.spiders.guru_spider import GuruSpider
 from discgolfspider.spiders.dgshop_spider import DgshopSpider
 from discgolfspider.spiders.aceshop_spider import AceshopSpider
 from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
@@ -12,6 +12,7 @@ from discgolfspider.spiders.krokholdgs_spider import KrokholDgsSpider
 from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
 from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 from discgolfspider.spiders.frisbeefeber_spider import FrisbeefeberSpider
+from discgolfspider.spiders.spinnvilldg_spider import SpinnvilldgSpider
 
 
 settings = get_project_settings()
@@ -31,6 +32,7 @@ def crawl():
     yield runner.crawl(FrisbeesorSpider)
     yield runner.crawl(DiscgolfdynastySpider)
     yield runner.crawl(FrisbeefeberSpider)
+    yield runner.crawl(SpinnvilldgSpider)
 
     return
 
