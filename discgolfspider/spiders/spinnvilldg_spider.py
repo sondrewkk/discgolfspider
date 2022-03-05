@@ -1,6 +1,3 @@
-from json.encoder import py_encode_basestring_ascii
-from urllib.parse import urlparse
-from urllib.parse import parse_qs
 from ..items import CreateDiscItem
 
 import scrapy
@@ -18,7 +15,6 @@ class SpinnvilldgSpider(scrapy.Spider):
         for product in response.css("li[data-hook*=\"product-list-grid-item\"]"):
             disc = CreateDiscItem()
             disc["name"] = product.css("h3::text").get().replace("[", "").replace("]", "")
-            disc["image"] = product.css("div[data-hook*=\"product-item-images\"]::attr(style)").get().split("(", 1)[1].split(")", 1)[0]
             disc["url"] = product.css("a::attr(href)").get()
             disc["spider_name"] = self.name
             disc["retailer"] = self.allowed_domains[0]
@@ -27,6 +23,9 @@ class SpinnvilldgSpider(scrapy.Spider):
             disc["glide"] = None
             disc["turn"] = None
             disc["fade"] = None
+
+            image_url = product.css("div[data-hook*=\"product-item-images\"]::attr(style)").get().split("(", 1)[1].split(")", 1)[0]
+            disc["image"] = self.resize_image(image_url)
 
             out_of_stock = response.css("span[data-hook=\"product-item-out-of-stock\"]")
 
@@ -48,3 +47,15 @@ class SpinnvilldgSpider(scrapy.Spider):
 
             yield response.follow(next_page, callback=self.parse)
  
+    def resize_image(self, image_url: str) -> str:
+        url_splitted = image_url.split("fill/")
+        main_url = url_splitted[0] + "fill/"
+        image_options = url_splitted[1]
+
+        options = image_options.split(",")
+        options[0] = "w_300"
+        options[1] = "h_300"
+        new_options = ",".join(options)
+
+        return f"{main_url}{new_options}"
+
