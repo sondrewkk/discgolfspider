@@ -31,9 +31,10 @@ class DiscItemBrandPipeline:
         brand_normalized = BrandHelper.normalize(disc["brand"])
 
         if not brand_normalized:
-            spider.logger.warning(
+            spider.logger.error(
                 f"Could not scrape brand name ({ 'None' if not disc['brand'] else disc['brand']}) for disc with name {disc['name']}."
             )
+            raise DropItem("Brand not normalized.")
 
         disc["brand"] = brand_normalized
 
@@ -88,7 +89,7 @@ class UpdateDiscPipeline:
         if not self.discs:
             return None
 
-        existing_disc: DiscItem = next((d for d in self.discs if d["name"] == disc_item["name"]), None)
+        existing_disc: DiscItem = next((d for d in self.discs if d["retailer_id"] == disc_item["retailer_id"]), None)
         return existing_disc
 
     def update_disc(self, disc: CreateDiscItem, current_disc: DiscItem) -> DiscItem:
