@@ -36,7 +36,7 @@ class DiscinstockApi:
         response = requests.post(f"{self.api_url}/discs", json=disc.dict(), headers=self.headers)
 
         if response.status_code != 201:
-            logger.error(f"Could not add {disc['name']}")
+            logger.error(f"Could not add {disc['name']}: {response.reason}")
 
         added_disc: DiscItem = response.json()
         return added_disc
@@ -45,7 +45,7 @@ class DiscinstockApi:
         response = requests.patch(f"{self.api_url}/discs/{id}", json=updates, headers=self.headers)
 
         if response.status_code != 200:
-            logger.error(f"Could not update {id}")
+            logger.error(f"Could not update {id}: {response.reason}")
 
         updated_disc: DiscItem = response.json()
         return updated_disc
