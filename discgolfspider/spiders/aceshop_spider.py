@@ -1,4 +1,5 @@
 from ..items import CreateDiscItem
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -13,11 +14,15 @@ class AceshopSpider(scrapy.Spider):
             disc = CreateDiscItem()
             disc["name"] = product.css(".product_box_title_row a::text").get()
             disc["image"] = product.css(".image img::attr(src)").get()
-            disc["url"] = product.css(".product_box_title_row a::attr(href)").get()
+
+            brand = product.css("p.manufacturers::text").get().strip().title()
+            url = product.css(".product_box_title_row a::attr(href)").get()
+            disc["url"] = url
             disc["spider_name"] = self.name
             disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
             disc["retailer"] = self.allowed_domains[0]
-            disc["brand"] = product.css("p.manufacturers::text").get().strip().title()
+            disc["retailer_id"] = create_retailer_id(brand, url)
+            disc["brand"] = brand
             
             price = int(product.css(".product-box::attr(data-price-including-tax)").get())
             if price:

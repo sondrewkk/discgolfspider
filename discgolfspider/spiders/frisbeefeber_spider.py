@@ -1,4 +1,5 @@
 from ..items import CreateDiscItem
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -29,10 +30,13 @@ class FrisbeefeberSpider(scrapy.Spider):
             disc = CreateDiscItem()
             disc["name"] = product.css(".title::text").get()
             disc["image"] = product.css(".image-mainimage > img::attr(src)").get()
-            disc["url"] = product.css(".title::attr(href)").get()
+
+            url = product.css(".title::attr(href)").get()
+            disc["url"] = url
             disc["spider_name"] = self.name
             disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
             disc["retailer"] = self.allowed_domains[0]
+            disc["retailer_id"] = create_retailer_id(brand, url)
             disc["brand"] = brand
 
             price = product.css(".price::text").get()

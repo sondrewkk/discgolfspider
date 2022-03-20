@@ -1,5 +1,5 @@
 from ..items import CreateDiscItem
-from urllib.parse import parse_qs, urlparse
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -14,10 +14,14 @@ class FrisbeebutikkenSpider(scrapy.Spider):
             disc = CreateDiscItem()
             disc["name"] = product.css(".title::text").get()
             disc["image"] = product.css(".image-mainimage img::attr(src)").get()
-            disc["url"] = product.css(".product_box_title_row a::attr(href)").get()
+            
+            brand = product.css(".manufacturer-box img::attr(alt)").get()
+            url = product.css(".product_box_title_row a::attr(href)").get()
+            disc["url"] = url
             disc["spider_name"] = self.name
-            disc["brand"] = product.css(".manufacturer-box img::attr(alt)").get()
+            disc["brand"] = brand
             disc["retailer"] = "frisbeebutikken.no"
+            disc["retailer_id"] = create_retailer_id(brand, url)
             disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
             disc["speed"] = None
             disc["glide"] = None

@@ -1,9 +1,9 @@
 from ..items import CreateDiscItem
 
 import scrapy
-import hashlib
 
 from urllib.parse import urlparse
+from ..helpers.retailer_id import create_retailer_id
 
 class TbksportSpider(scrapy.Spider):
     name = "tbksport"
@@ -37,10 +37,8 @@ class TbksportSpider(scrapy.Spider):
            
             url = product.css("a.woocommerce-LoopProduct-link").attrib["href"]        
             disc["url"] = url                                 
-            
-            retailer_id = f"{url}{brand}".encode()
             disc["retailer"] = self.allowed_domains[0]
-            disc["retailer_id"] = hashlib.md5(retailer_id).hexdigest()
+            disc["retailer_id"] = create_retailer_id(brand, url)
             disc["brand"] = brand  
             disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
 

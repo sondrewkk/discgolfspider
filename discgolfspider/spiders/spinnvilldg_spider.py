@@ -1,4 +1,5 @@
 from ..items import CreateDiscItem
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -15,10 +16,14 @@ class SpinnvilldgSpider(scrapy.Spider):
         for product in response.css("li[data-hook*=\"product-list-grid-item\"]"):
             disc = CreateDiscItem()
             disc["name"] = product.css("h3::text").get().replace("[", "").replace("]", "")
-            disc["url"] = product.css("a::attr(href)").get()
+
+            brand = response.url.split("Merke=")[1].split("&")[0].replace("+", " ")
+            url = product.css("a::attr(href)").get()
+            disc["url"] = url
             disc["spider_name"] = self.name
             disc["retailer"] = self.allowed_domains[0]
-            disc["brand"] = response.url.split("Merke=")[1].split("&")[0].replace("+", " ")
+            disc["retailer_id"] = create_retailer_id(brand, url)
+            disc["brand"] = brand
             disc["speed"] = None
             disc["glide"] = None
             disc["turn"] = None

@@ -1,4 +1,5 @@
 from ..items import CreateDiscItem
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -41,7 +42,8 @@ class GolfdiscerSpider(scrapy.Spider):
 
             url = product.css(".product-image > a::attr(href)").get()
             disc["url"] = f"{self.start_urls[0]}{url}"
-
+            disc["retailer_id"] = create_retailer_id(brand, url)
+ 
             yield disc
 
         next_page = response.css(".pagination-page a[title=Neste]::attr(href)").get()

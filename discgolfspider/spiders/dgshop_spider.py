@@ -1,7 +1,7 @@
 from ..items import CreateDiscItem
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
-import re
 
 
 class DgshopSpider(scrapy.Spider):
@@ -26,10 +26,13 @@ class DgshopSpider(scrapy.Spider):
             disc = CreateDiscItem()
             disc["name"] = product.css(".product-image-photo::attr(alt)").get()
             disc["image"] = product.css(".product-image-photo::attr(src)").get()
-            disc["url"] = product.css("a::attr(href)").get()
+
+            url = product.css("a::attr(href)").get()
+            disc["url"] = url
             disc["spider_name"] = self.name
             disc["in_stock"] = True
             disc["retailer"] = self.allowed_domains[0]
+            disc["retailer_id"] = create_retailer_id(brand, url)
             disc["brand"] = brand
 
             price = product.css(".price::text").get()

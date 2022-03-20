@@ -1,4 +1,5 @@
 from ..items import CreateDiscItem
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -36,6 +37,7 @@ class DiscoverdiscsSpider(scrapy.Spider):
 
             url = product.css("a").attrib["href"]
             disc["url"] = f"{self.start_urls[0]}{url}"
+            disc["retailer_id"] = create_retailer_id(brand, url)
 
             prices = product.css(".price-item::text").getall()
             disc["price"] = int(prices[len(prices) - 1].split(",")[0])

@@ -1,4 +1,5 @@
 from ..items import CreateDiscItem
+from ..helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -39,6 +40,7 @@ class ProdiscSpider(scrapy.Spider):
 
             url = product.css("a").attrib["href"]
             disc["url"] = f"{self.start_urls[0]}{url}"
+            disc["retailer_id"] = create_retailer_id(brand, url)
 
             prices = product.css(".price-item::text").getall()
             prices = [price.strip().replace("\n", "") for price in prices]
