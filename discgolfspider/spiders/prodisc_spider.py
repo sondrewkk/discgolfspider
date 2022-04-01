@@ -49,7 +49,7 @@ class ProdiscSpider(scrapy.Spider):
 
             flight_specs = product.css("div[class*=\"flightbox-\"]::text").getall()
             if flight_specs:
-                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [float(spec) for spec in flight_specs]
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [float(spec.replace(",", ".")) for spec in flight_specs]
 
             current_brand = product.css("div.caption-with-letter-spacing::text").get()
             if current_brand:
