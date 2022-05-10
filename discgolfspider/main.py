@@ -4,18 +4,18 @@ from scrapy.utils.project import get_project_settings
 from scrapy.utils.log import logger, configure_logging
 
 #from discgolfspider.spiders.guru_spider import GuruSpider
-from discgolfspider.spiders.dgshop_spider import DgshopSpider
-from discgolfspider.spiders.aceshop_spider import AceshopSpider
+#from discgolfspider.spiders.dgshop_spider import DgshopSpider
+#from discgolfspider.spiders.aceshop_spider import AceshopSpider
 from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
 from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
-from discgolfspider.spiders.krokholdgs_spider import KrokholDgsSpider
+#from discgolfspider.spiders.krokholdgs_spider import KrokholDgsSpider
 from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
-from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
-from discgolfspider.spiders.frisbeefeber_spider import FrisbeefeberSpider
-from discgolfspider.spiders.spinnvilldg_spider import SpinnvilldgSpider
+#from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
+#from discgolfspider.spiders.frisbeefeber_spider import FrisbeefeberSpider
+#from discgolfspider.spiders.spinnvilldg_spider import SpinnvilldgSpider
 from discgolfspider.spiders.discoverdiscs_spider import DiscoverdiscsSpider
 from discgolfspider.spiders.prodisc_spider import ProdiscSpider
-from discgolfspider.spiders.tbksport_spider import TbksportSpider
+#from discgolfspider.spiders.tbksport_spider import TbksportSpider
 
 
 settings = get_project_settings()
@@ -26,19 +26,19 @@ runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
 def crawl():
-    yield runner.crawl(DgshopSpider)
-    #yield runner.crawl(GuruSpider) TODO: Legg til ny side
-    yield runner.crawl(AceshopSpider)
+    #yield runner.crawl(DgshopSpider)               Ingen avtale
+    #yield runner.crawl(GuruSpider)                 TODO: Legg til ny side
+    #yield runner.crawl(AceshopSpider)              Ingen avtale
     yield runner.crawl(GolfdiscerSpider)
     yield runner.crawl(FrisbeebutikkenSpider)
-    yield runner.crawl(KrokholDgsSpider)
+    #yield runner.crawl(KrokholDgsSpider)           Ingen avtale
     yield runner.crawl(FrisbeesorSpider)
-    yield runner.crawl(DiscgolfdynastySpider)
-    yield runner.crawl(FrisbeefeberSpider)
-    yield runner.crawl(SpinnvilldgSpider)
+    #yield runner.crawl(DiscgolfdynastySpider)      Ingen avtale
+    #yield runner.crawl(FrisbeefeberSpider)         Ingen avtale
+    #yield runner.crawl(SpinnvilldgSpider)          Ingen avtale
     yield runner.crawl(DiscoverdiscsSpider)
     yield runner.crawl(ProdiscSpider)
-    yield runner.crawl(TbksportSpider)
+    #yield runner.crawl(TbksportSpider)             Ingen avtale
 
     return
 
