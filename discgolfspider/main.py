@@ -10,7 +10,7 @@ from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
 from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
 #from discgolfspider.spiders.krokholdgs_spider import KrokholDgsSpider
 from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
-#from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
+from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 #from discgolfspider.spiders.frisbeefeber_spider import FrisbeefeberSpider
 #from discgolfspider.spiders.spinnvilldg_spider import SpinnvilldgSpider
 from discgolfspider.spiders.discoverdiscs_spider import DiscoverdiscsSpider
@@ -33,7 +33,7 @@ def crawl():
     yield runner.crawl(FrisbeebutikkenSpider)
     #yield runner.crawl(KrokholDgsSpider)           Ingen avtale
     yield runner.crawl(FrisbeesorSpider)
-    #yield runner.crawl(DiscgolfdynastySpider)      Ingen avtale
+    yield runner.crawl(DiscgolfdynastySpider)      
     #yield runner.crawl(FrisbeefeberSpider)         Ingen avtale
     #yield runner.crawl(SpinnvilldgSpider)          Ingen avtale
     yield runner.crawl(DiscoverdiscsSpider)

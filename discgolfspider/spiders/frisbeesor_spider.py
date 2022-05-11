@@ -53,7 +53,7 @@ class FrisbeesorSpider(scrapy.Spider):
             price = product.css('.price bdi::text').get()
 
             if price:
-                disc["price"] = int(price.split(".")[0])
+                disc["price"] = int("".join(filter(str.isdigit, price.replace(",", "").split(".")[0])))
             else:
                 disc["price"] = None
 
