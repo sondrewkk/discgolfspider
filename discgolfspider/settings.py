@@ -126,3 +126,6 @@ GURU_API_SECRET_FILE = os.getenv("GURU_API_SECRET_FILE")
 if GURU_API_SECRET_FILE:
     with open(GURU_API_SECRET_FILE, "r") as file:
         GURU_API_SECRET = file.read()
+
+# Pipeline flags
+ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = True

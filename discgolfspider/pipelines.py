@@ -5,6 +5,7 @@
 from discgolfspider.discinstock_api import DiscinstockApi
 from scrapy.exceptions import DropItem
 from discgolfspider.helpers.brand_helper import BrandHelper
+from discgolfspider.helpers.flightspec_suggester import FlightSpecSuggester, SuggestionError
 from discgolfspider.items import CreateDiscItem, DiscItem
 
 
@@ -116,8 +117,9 @@ class UpdateDiscPipeline:
         return difference
 
 class DiscItemFlightSpecPipeline:
-    def __init__(self, api_url, username, password) -> None:
+    def __init__(self, api_url, username, password, enable) -> None:
         self.api: DiscinstockApi = DiscinstockApi(api_url, username, password)
+        self.enable = enable
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -125,9 +127,14 @@ class DiscItemFlightSpecPipeline:
             api_url=crawler.settings.get("API_URL"),
             username=crawler.settings.get("API_USERNAME"),
             password=crawler.settings.get("API_PASSWORD"),
+            enable=crawler.settings.get("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE")
         )
 
     def process_item(self, item: CreateDiscItem, spider):
+
+        if not self.enable:
+            return item
+
         disc_item: CreateDiscItem = item
         
         # Id disc item already has specs return
@@ -139,16 +146,18 @@ class DiscItemFlightSpecPipeline:
         discs = self.api.search_disc(query)
         discs = [disc for disc in discs if disc["speed"] is not None]
 
-        # Copy spec of the first valid disc
-        if discs:
-            disc_item["speed"] = discs[0]["speed"]
-            disc_item["glide"] = discs[0]["glide"]
-            disc_item["turn"]  = discs[0]["turn"]
-            disc_item["fade"]  = discs[0]["fade"]
+        flight_spec_suggestion: dict
 
+        try:
+            flight_spec_suggestion = FlightSpecSuggester.find_suggestion(discs)
+        except SuggestionError as err:
+            spider.logger.warning(f"Could not find suggestion for {disc_item['name']}. Error: {err}")
             return disc_item
 
-        spider.logger.info(f"Could't find a simelar disc to get specs from: {disc_item}")
+        disc_item["speed"] = flight_spec_suggestion["speed"]
+        disc_item["glide"] = flight_spec_suggestion["glide"]
+        disc_item["turn"]  = flight_spec_suggestion["turn"]
+        disc_item["fade"]  = flight_spec_suggestion["fade"]
 
         return disc_item
         
