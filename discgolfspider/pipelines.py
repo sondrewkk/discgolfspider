@@ -114,3 +114,41 @@ class UpdateDiscPipeline:
                     difference[k] = disc[k]
 
         return difference
+
+class DiscItemFlightSpecPipeline:
+    def __init__(self, api_url, username, password) -> None:
+        self.api: DiscinstockApi = DiscinstockApi(api_url, username, password)
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            api_url=crawler.settings.get("API_URL"),
+            username=crawler.settings.get("API_USERNAME"),
+            password=crawler.settings.get("API_PASSWORD"),
+        )
+
+    def process_item(self, item: CreateDiscItem, spider):
+        disc_item: CreateDiscItem = item
+        
+        # Id disc item already has specs return
+        if disc_item["speed"] is not None:
+            return disc_item
+
+        # Get discs with same name and has values for flight specs
+        query = {"disc_name": disc_item["name"]}
+        discs = self.api.search_disc(query)
+        discs = [disc for disc in discs if disc["speed"] is not None]
+
+        # Copy spec of the first valid disc
+        if discs:
+            disc_item["speed"] = discs[0]["speed"]
+            disc_item["glide"] = discs[0]["glide"]
+            disc_item["turn"]  = discs[0]["turn"]
+            disc_item["fade"]  = discs[0]["fade"]
+
+            return disc_item
+
+        spider.logger.info(f"Could't find a simelar disc to get specs from: {disc_item}")
+
+        return disc_item
+        

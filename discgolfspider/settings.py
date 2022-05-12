@@ -67,6 +67,7 @@ DOWNLOADER_MIDDLEWARES = {
 ITEM_PIPELINES = {
     "discgolfspider.pipelines.DiscItemPipeline": 300,
     "discgolfspider.pipelines.DiscItemBrandPipeline": 301,
+    "discgolfspider.pipelines.DiscItemFlightSpecPipeline": 302,
     "discgolfspider.pipelines.UpdateDiscPipeline": 400,
 }
 
