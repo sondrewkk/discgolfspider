@@ -25,7 +25,7 @@ class FlightSpecSuggester:
 
         # Check how many groups there is. If there is more than one group, the suggestion can result in 
         # data polution if the choosen group has wrong flight spec for the current disc
-        number_of_groups: int = len(grouped.keys())
+        number_of_groups = len(grouped.keys())
 
         if number_of_groups > 1:
             msg = f"To many groups. Choosing group can result in data polution. {grouped.keys()}"
