@@ -52,9 +52,9 @@ DOWNLOAD_DELAY = 0.3
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'discgolfspider.middlewares.DiscgolfspiderDownloaderMiddleware': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware': 100,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

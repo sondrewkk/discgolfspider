@@ -1,3 +1,7 @@
+from attr import attributes
+from scrapy.http import Headers
+from scrapy import Request
+from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
 import scrapy
@@ -6,79 +10,80 @@ import scrapy
 class GuruSpider(scrapy.Spider):
     name = "guru"
     allowed_domains = ["gurudiscgolf.no"]
-    start_urls = ["https://gurudiscgolf.no/diskgolf.html"]
+    start_urls = ["https://gurudiscgolf.no/wp-json/wc/v3/products?per_page=100&page=31"]
+    http_user = ""
+    http_pass = ""
+    http_auth_domain = "gurudiscgolf.no"
 
     def parse(self, response):
-        for brand in response.css(".row.subcategories div"):
-            next_page = brand.css("a::attr(href)").get(1)
-            brand_name = brand.css("a::text").get(1).rstrip()
+        self.logger.debug("##### RUNNING PARSE ######")
+        products = response.json()
+        disc_products = [product for product in products if self.is_disc(product)]
 
-            if next_page is not None:
-                yield response.follow(
-                    next_page,
-                    callback=self.parse_products,
-                    cb_kwargs={"brand": brand_name},
-                )
+        for disc_product in disc_products:
+            disc = CreateDiscItem()
+            disc["name"] = disc_product["name"]
+            disc["image"] = disc_product["images"][0]["src"]
+            disc["in_stock"] = True if disc_product["stock_status"] == "instock" else False
+            
+            url = disc_product["permalink"]
+            disc["url"] = url
+            disc["spider_name"] = self.name
+            
+            attributes = disc_products["attributes"]
+            brand = self.get_attribute(attributes, "Produsent")
+            disc["brand"] = brand
+            disc["retailer"] = self.allowed_domains[0]
+            disc["retialer_id"] = create_retailer_id(brand, url)
+            disc["speed"] = self.get_attribute(attributes, "Speed")
+            disc["glide"] = self.get_attribute(attributes, "Glide")
+            disc["turn"] = self.get_attribute(attributes, "Turn")
+            disc["fade"] = self.get_attribute(attributes, "Fade")
 
-    def parse_products(self, response, brand):
-        has_subcategories = len(response.css(".row.subcategories div").getall()) > 0
+            price = disc_product["price"]
+            if disc_product["tax_status"] == "taxable":
+                price *= 1.25 # Add MVA
 
-        if has_subcategories:
-            for category in response.css(".row.subcategories div"):
-                next_page = category.css("a::attr(href)").get()
-                is_duplicated = self.is_duplicated_category(next_page)
+            disc["price"] = price
 
-                if next_page is not None and not is_duplicated:
-                    yield response.follow(
-                        next_page,
-                        callback=self.parse_products,
-                        cb_kwargs={"brand": brand},
-                    )
+        # Check for next page
+        headers: Headers = response.headers
+        next_page = self.get_next_page(headers)
+
+        if next_page is not None:
+            yield Request(next_page, callback=self.parse)
         else:
-            for product in response.css(".product-layout"):
-                disc = CreateDiscItem()
-                disc["name"] = product.css(".img-responsive::attr(alt)").get()
-                disc["image"] = product.css(".img-responsive::attr(src)").get()
-                disc["in_stock"] = product.css(".stock-status::text").get() != "Utsolgt"
-                disc["url"] = product.css("a::attr(href)").get()
-                disc["spider_name"] = self.name
-                disc["retailer"] = self.allowed_domains[0]
-                disc["brand"] = brand
+            self.logger.debug(" ######### No next page ###########")
 
-                price = product.css(".price::text").get()
-                flight_specs = product.css(".attribute-groups > span::text").getall()
 
-                if price:
-                    disc["price"] = int("".join(filter(str.isdigit, price.split(",")[0])))
+    def is_disc(self, product: dict) -> bool:
+        product_type: str = product["categories"][0]["slug"]
+        return product_type == "golfdiscer"
 
-                if len(flight_specs) == 4:
-                    flight_specs = [
-                        float(numeric_string.replace(",", ".")) for numeric_string in flight_specs
-                    ]
-                    (
-                        disc["speed"],
-                        disc["glide"],
-                        disc["turn"],
-                        disc["fade"],
-                    ) = flight_specs
-                else:
-                    self.logger.warning(f"Did not find flight spec for disc with name { disc['name'] }")
-                    disc["speed"] = None
-                    disc["glide"] = None
-                    disc["turn"] = None
-                    disc["fade"] = None
 
-                yield disc
+    def get_next_page(self, headers: Headers) -> str:
+        link_header: str = headers.get("Link").decode("utf-8")
+        next_page: str = None
 
-    def is_duplicated_category(self, category_link):
-        duplicated_categories = [
-            "/glow",
-            "/i-dye",
-            "/overmold",
-            "/burst",
-            "/moonshine",
-            "/retro",
-        ]
-        duplicated = any([category for category in duplicated_categories if category in category_link])
+        self.logger.debug(f"{link_header=}")
 
-        return duplicated
+        if not link_header:
+            return None
+
+        links = link_header.split(",")
+
+        for link in links:
+            rel = link.split(";")[1]
+
+            self.logger.debug(f"{rel=}")
+
+            # If link header is of type next
+            if rel.find("next") != -1:
+                next_page = link.split(";")[0].replace("<", "").replace(">", "").strip()
+                self.logger.debug(f"{next_page=}")
+        
+        return next_page
+
+    
+    def get_attribute(self, attributes: list, value: str) -> str:
+        return next((attr["options"][0] for attr in attributes if attr["name"] == value), None)
