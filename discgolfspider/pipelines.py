@@ -117,9 +117,9 @@ class UpdateDiscPipeline:
         return difference
 
 class DiscItemFlightSpecPipeline:
-    def __init__(self, api_url, username, password, enable) -> None:
+    def __init__(self, api_url, username, password, enabled) -> None:
         self.api: DiscinstockApi = DiscinstockApi(api_url, username, password)
-        self.enable = enable
+        self.enabled = enabled
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -127,12 +127,12 @@ class DiscItemFlightSpecPipeline:
             api_url=crawler.settings.get("API_URL"),
             username=crawler.settings.get("API_USERNAME"),
             password=crawler.settings.get("API_PASSWORD"),
-            enable=crawler.settings.get("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE")
+            enabled=crawler.settings.get("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE")
         )
 
     def process_item(self, item: CreateDiscItem, spider):
 
-        if not self.enable:
+        if not self.enabled:
             return item
 
         disc_item: CreateDiscItem = item
@@ -151,7 +151,7 @@ class DiscItemFlightSpecPipeline:
         try:
             flight_spec_suggestion = FlightSpecSuggester.find_suggestion(discs)
         except SuggestionError as err:
-            spider.logger.warning(f"Could not find suggestion for {disc_item['name']}. Error: {err}")
+            spider.logger.warning(f"Could not find suggestion for {disc_item['name']}. Message: {err}")
             return disc_item
 
         disc_item["speed"] = flight_spec_suggestion["speed"]
