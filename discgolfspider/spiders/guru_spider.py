@@ -1,50 +1,69 @@
-from attr import attributes
 from scrapy.http import Headers
 from scrapy import Request
 from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
+#import discgolfspider.settings as settings
 import scrapy
 
 
 class GuruSpider(scrapy.Spider):
     name = "guru"
     allowed_domains = ["gurudiscgolf.no"]
-    start_urls = ["https://gurudiscgolf.no/wp-json/wc/v3/products?per_page=100&page=31"]
-    http_user = ""
-    http_pass = ""
+    start_urls = ["https://gurudiscgolf.no/wp-json/wc/v3/products?per_page=100&page=1"]
     http_auth_domain = "gurudiscgolf.no"
 
+    def __init__(self, name=None, **kwargs):
+        super().__init__(name, **kwargs)
+        settings = kwargs["settings"]
+        self.http_user = settings["GURU_API_KEY"]
+        self.http_pass = settings["GURU_API_SECRET"]
+
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(settings=crawler.settings)
+
+
     def parse(self, response):
-        self.logger.debug("##### RUNNING PARSE ######")
         products = response.json()
         disc_products = [product for product in products if self.is_disc(product)]
 
         for disc_product in disc_products:
+
+            # If the disc product is not published, skip this disc product
+            if disc_product["status"] == "draft":
+                continue
+
             disc = CreateDiscItem()
             disc["name"] = disc_product["name"]
             disc["image"] = disc_product["images"][0]["src"]
-            disc["in_stock"] = True if disc_product["stock_status"] == "instock" else False
+
+            in_stock = True if disc_product["stock_status"] == "instock" else False
+            disc["in_stock"] = in_stock
             
             url = disc_product["permalink"]
             disc["url"] = url
             disc["spider_name"] = self.name
             
-            attributes = disc_products["attributes"]
+            attributes = disc_product["attributes"]
             brand = self.get_attribute(attributes, "Produsent")
             disc["brand"] = brand
             disc["retailer"] = self.allowed_domains[0]
-            disc["retialer_id"] = create_retailer_id(brand, url)
-            disc["speed"] = self.get_attribute(attributes, "Speed")
-            disc["glide"] = self.get_attribute(attributes, "Glide")
-            disc["turn"] = self.get_attribute(attributes, "Turn")
-            disc["fade"] = self.get_attribute(attributes, "Fade")
+            disc["retailer_id"] = create_retailer_id(brand, url)
+            
+            flight_specs = self.parse_flight_spec(attributes)
+            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
 
-            price = disc_product["price"]
-            if disc_product["tax_status"] == "taxable":
-                price *= 1.25 # Add MVA
+            if in_stock:
+                price = float(disc_product["price"])
+ 
+                if disc_product["tax_status"] == "taxable":
+                    price *= 1.25 # Add MVA
 
-            disc["price"] = price
+            disc["price"] = price if in_stock else -9999.0
+
+            yield disc
 
         # Check for next page
         headers: Headers = response.headers
@@ -52,8 +71,6 @@ class GuruSpider(scrapy.Spider):
 
         if next_page is not None:
             yield Request(next_page, callback=self.parse)
-        else:
-            self.logger.debug(" ######### No next page ###########")
 
 
     def is_disc(self, product: dict) -> bool:
@@ -65,8 +82,6 @@ class GuruSpider(scrapy.Spider):
         link_header: str = headers.get("Link").decode("utf-8")
         next_page: str = None
 
-        self.logger.debug(f"{link_header=}")
-
         if not link_header:
             return None
 
@@ -75,15 +90,38 @@ class GuruSpider(scrapy.Spider):
         for link in links:
             rel = link.split(";")[1]
 
-            self.logger.debug(f"{rel=}")
-
             # If link header is of type next
             if rel.find("next") != -1:
                 next_page = link.split(";")[0].replace("<", "").replace(">", "").strip()
-                self.logger.debug(f"{next_page=}")
         
         return next_page
 
     
-    def get_attribute(self, attributes: list, value: str) -> str:
-        return next((attr["options"][0] for attr in attributes if attr["name"] == value), None)
+    def get_attribute(self, attributes: list, value: str) -> str:   
+        attribute = next((attr for attr in attributes if attr["name"] == value), None)
+
+        if not attribute:
+            self.logger.debug(f"Could not find attribute: {value}")
+            return None
+
+        if len(attribute["options"]) == 0:
+            self.logger.debug(f"attribute ({value} has no value")
+            return None
+
+        return attribute["options"][0]
+
+
+    def parse_flight_spec(self, attributes: list) -> list:
+        spec_types = ["Speed", "Glide", "Turn", "Fade"]
+        flight_specs = []
+
+        for type in spec_types:
+            spec = self.get_attribute(attributes, type)
+
+            if spec:
+                spec = float(spec.replace(",", "."))
+           
+            flight_specs.append(spec)
+        
+        return flight_specs
+                

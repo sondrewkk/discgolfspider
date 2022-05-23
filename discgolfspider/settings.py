@@ -111,3 +111,17 @@ if API_PASSWORD_FILE:
 
 # Logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+
+# Guru auth
+GURU_API_KEY = "changeme"
+GURU_API_SECRET = "changeme"
+
+GURU_API_KEY_FILE = os.getenv("GURU_API_KEY_FILE")
+if GURU_API_KEY_FILE:
+    with open(GURU_API_KEY_FILE, "r") as file:
+        GURU_API_KEY = file.read()
+
+GURU_API_SECRET_FILE = os.getenv("GURU_API_SECRET_FILE")
+if GURU_API_SECRET_FILE:
+    with open(GURU_API_SECRET_FILE, "r") as file:
+        GURU_API_SECRET = file.read()

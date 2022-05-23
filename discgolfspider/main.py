@@ -3,7 +3,7 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 from scrapy.utils.log import logger, configure_logging
 
-#from discgolfspider.spiders.guru_spider import GuruSpider
+from discgolfspider.spiders.guru_spider import GuruSpider
 #from discgolfspider.spiders.dgshop_spider import DgshopSpider
 #from discgolfspider.spiders.aceshop_spider import AceshopSpider
 from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
@@ -27,7 +27,7 @@ runner = CrawlerRunner(settings)
 @defer.inlineCallbacks
 def crawl():
     #yield runner.crawl(DgshopSpider)               Ingen avtale
-    #yield runner.crawl(GuruSpider)                 TODO: Legg til ny side
+    yield runner.crawl(GuruSpider)                 
     #yield runner.crawl(AceshopSpider)              Ingen avtale
     yield runner.crawl(GolfdiscerSpider)
     yield runner.crawl(FrisbeebutikkenSpider)
