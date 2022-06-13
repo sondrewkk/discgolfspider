@@ -43,7 +43,7 @@ class ProdiscSpider(scrapy.Spider):
             disc["retailer_id"] = create_retailer_id(brand, url)
 
             prices = product.css(".price-item::text").getall()
-            prices = [price.strip().replace("\n", "") for price in prices]
+            prices = [price.strip().replace("\n", "").replace(".", "") for price in prices]
             prices = [price for price in prices if price != ""]
             disc["price"] = int(prices[len(prices) - 1].split(",")[0])
 
