@@ -26,6 +26,9 @@ class DiscItem(scrapy.Item):
 
     def dict(self):
         return self.__dict__["_values"]
+    
+    def has_flight_specs(self) -> bool:
+        return self.get("speed") and self.get("glide") and self.get("turn") and self.get("fade")
 
 
 class CreateDiscItem(scrapy.Item):
@@ -45,3 +48,9 @@ class CreateDiscItem(scrapy.Item):
 
     def dict(self):
         return self.__dict__["_values"]
+    
+    def __repr__(self):
+        return f"{self.get('name')} ({self.get('url')})"
+
+    def __str__(self):
+        return f"{self.get('name')} ({self.get('url')})"
