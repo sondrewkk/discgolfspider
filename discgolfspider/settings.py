@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 
 # Scrapy settings for discgolfspider project
 #
@@ -8,6 +9,8 @@ import os
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+
+load_dotenv()
 
 BOT_NAME = "discgolfspider"
 
@@ -93,12 +96,12 @@ ITEM_PIPELINES = {
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # Crawl interval
-CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL", 3600))  # One hour default
+CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL"))  # One hour default
 
 # API Configuration
-API_URL = os.getenv("API_URL", "http://localhost:8080")
-API_USERNAME = "discinstock"
-API_PASSWORD = "Passw0rd"
+API_URL = os.getenv("API_URL")
+API_USERNAME = os.getenv("API_USERNAME")
+API_PASSWORD = os.getenv("API_PASSWORD")
 
 API_USERNAME_FILE = os.getenv("API_USERNAME_FILE")
 if API_USERNAME_FILE:
@@ -111,11 +114,11 @@ if API_PASSWORD_FILE:
         API_PASSWORD = file.read()
 
 # Logging
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+LOG_LEVEL = os.getenv("LOG_LEVEL")
 
 # Guru auth
-GURU_API_KEY = "changeme"
-GURU_API_SECRET = "changeme"
+GURU_API_KEY = os.getenv("GURU_API_KEY")
+GURU_API_SECRET = os.getenv("GURU_API_SECRET")
 
 GURU_API_KEY_FILE = os.getenv("GURU_API_KEY_FILE")
 if GURU_API_KEY_FILE:
@@ -128,4 +131,4 @@ if GURU_API_SECRET_FILE:
         GURU_API_SECRET = file.read()
 
 # Pipeline flags
-ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = True
+ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = os.getenv("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE") == "True"
