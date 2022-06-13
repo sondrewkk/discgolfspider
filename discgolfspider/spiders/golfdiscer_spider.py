@@ -35,10 +35,18 @@ class GolfdiscerSpider(scrapy.Spider):
             disc["brand"] = brand
             disc["retailer"] = self.allowed_domains[0]
             disc["price"] = int(product.css(".money::text").get().split(",")[0])
-            disc["speed"] = float(product.css(".flight-numbers > li span::text").get().strip())
-            disc["glide"] = float(product.css(".flight-numbers > li:nth-child(2)::text").get().strip())
-            disc["turn"] = float(product.css(".flight-numbers > li:nth-child(3)::text").get().strip())
-            disc["fade"] = float(product.css(".flight-numbers > li:nth-child(4)::text").get().strip())
+            
+            speed = product.css(".flight-numbers > li span::text").get()
+            disc["speed"] = float(speed.strip()) if speed else None
+
+            glide = product.css(".flight-numbers > li:nth-child(2)::text").get()
+            disc["glide"] = float(glide.strip()) if glide else None
+
+            turn = product.css(".flight-numbers > li:nth-child(3)::text").get()
+            disc["turn"] = float(turn.strip()) if turn else None
+
+            fade = product.css(".flight-numbers > li:nth-child(4)::text").get()
+            disc["fade"] = float(fade.strip()) if fade else None
 
             url = product.css(".product-image > a::attr(href)").get()
             disc["url"] = f"{self.start_urls[0]}{url}"
