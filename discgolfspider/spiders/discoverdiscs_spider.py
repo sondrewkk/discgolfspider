@@ -43,7 +43,12 @@ class DiscoverdiscsSpider(scrapy.Spider):
             disc["price"] = int(prices[len(prices) - 1].split(",")[0])
 
             flight_specs = product.css(".disc-info__value::text").getall()
-            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [float(spec) for spec in flight_specs]
+
+            if not flight_specs:
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
+            else:
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [float(spec) for spec in flight_specs]
+
 
             yield disc
 
