@@ -8,6 +8,7 @@ authors = ["Sondre William Kaldhussæter-Knutsen <knutsensondre@gmail.com>"]
 python = "^3.9"
 Scrapy = "^2.4.1"
 requests = "^2.26.0"
+python-dotenv = "^0.20.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
