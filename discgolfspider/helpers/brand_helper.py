@@ -6,6 +6,7 @@ class BrandHelper:
     brands = [
         "Alfa Discs",
         "Axiom",
+        "Clash Discs",
         "Dino Discs",
         "Disc Golf UK",
         "Discmania",
