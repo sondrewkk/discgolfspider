@@ -36,7 +36,8 @@ class DiscinstockApi:
         response = requests.post(f"{self.api_url}/discs", json=disc.dict(), headers=self.headers)
 
         if response.status_code != 201:
-            logger.error(f"Could not add {disc['name']}: {response.reason}")
+            logger.error(f"{disc['spider_name']} | Could not add {disc['name']}({disc['url']}): {response.reason}")
+            logger.debug(f"{response.content}")
 
         added_disc: DiscItem = response.json()
         return added_disc

@@ -65,11 +65,8 @@ class DiscgolfdynastySpider(scrapy.Spider):
             flight_specs = [self.format_flight_spec(numeric_string) for numeric_string in flight_specs]
             disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
         else:
-            self.logger.warning(f"Did not find flight spec for disc with name { disc['name'] }")
-            disc["speed"] = None
-            disc["glide"] = None
-            disc["turn"] = None
-            disc["fade"] = None
+            self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
+            disc["speed"], disc["glide"], disc["turn"] ,disc["fade"] = [None, None, None, None]
 
         yield disc
 

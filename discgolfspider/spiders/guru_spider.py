@@ -53,7 +53,7 @@ class GuruSpider(scrapy.Spider):
             disc["retailer_id"] = create_retailer_id(brand, url)
             
             flight_specs = self.parse_flight_spec(attributes)
-            if None in flight_specs:
+            if None in flight_specs and in_stock:
                 self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
 
             disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
