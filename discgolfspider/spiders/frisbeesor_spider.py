@@ -18,7 +18,7 @@ class FrisbeesorSpider(scrapy.Spider):
 
             next_page = f"{brand_path}"
 
-            if next_page is not None:
+            if next_page is not None and brand_name != "ZÜCA":
                 yield response.follow(
                     next_page,
                     callback=self.parse_products,
