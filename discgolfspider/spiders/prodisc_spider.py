@@ -7,7 +7,7 @@ import scrapy
 class ProdiscSpider(scrapy.Spider):
     name = "prodisc"
     allowed_domains = ["prodisc.no"]
-    start_urls = ["https://www.prodisc.no"]
+    start_urls = ["https://prodisc.no"]
 
     def parse(self, response):
         brands = response.css("ul[id=\"HeaderMenu-MenuList-3\"] > li")
@@ -37,7 +37,6 @@ class ProdiscSpider(scrapy.Spider):
 
             badge = product.css("span.badge::text").get()
             disc["in_stock"] = True if badge is None or badge != "Utsolgt" else False
-
             url = product.css("a").attrib["href"]
             disc["url"] = f"{self.start_urls[0]}{url}"
             disc["retailer_id"] = create_retailer_id(brand, url)
@@ -50,6 +49,9 @@ class ProdiscSpider(scrapy.Spider):
             flight_specs = product.css("div[class*=\"flightbox-\"]::text").getall()
             if flight_specs:
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [float(spec.replace(",", ".")) for spec in flight_specs]
+            else:
+                self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
 
             current_brand = product.css("div.caption-with-letter-spacing::text").get()
             if current_brand:
@@ -62,3 +64,7 @@ class ProdiscSpider(scrapy.Spider):
         next_page = response.css("a.pagination__item--prev::attr(href)").get()
         if next_page is not None:
              yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
+
+# Ser ut til at disker som er lagret som in stock = False ikke klarer å skifte status til in stock = True
+# Diskene for prodisk prøver først å legge til disken fordi den tror den ikke eksisterer fra før,
+# deretter prøver den å oppdatere disken men finner ingen forskjeller... Burde ha instock forskjellig.
