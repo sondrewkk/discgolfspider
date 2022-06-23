@@ -1,5 +1,5 @@
 import requests
-from .items import CreateDiscItem, DiscItem
+from discgolfspider.items import DiscItem, CreateDiscItem
 from scrapy.exceptions import CloseSpider
 from scrapy.utils.log import logger
 
@@ -51,11 +51,13 @@ class DiscinstockApi:
         updated_disc: DiscItem = response.json()
         return updated_disc
 
-    def search_disc(self, query: dict) -> list:
+    def search_disc(self, query: dict) -> list[DiscItem]:
         response = requests.get(f"{self.api_url}/discs/search", query)
 
         if response.status_code != 200:
             logger.error(f"Could not get disc by query ({query}): {response.reason}")
 
         discs: list = response.json()
+        discs = [DiscItem(disc) for disc in discs]
+
         return discs
