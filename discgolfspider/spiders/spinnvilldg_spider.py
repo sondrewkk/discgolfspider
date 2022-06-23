@@ -46,7 +46,6 @@ class SpinnvilldgSpider(scrapy.Spider):
         
         if next_page_active:
             url_splitted = response.url.rsplit("=", 1)
-            print(url_splitted)
             page = int(url_splitted[1]) + 1
             next_page = f"{url_splitted[0]}={page}"
 
