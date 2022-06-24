@@ -122,9 +122,24 @@ class GuruSpider(scrapy.Spider):
             spec = self.get_attribute(attributes, type)
 
             if spec:
-                spec = float(spec.replace(",", "."))
-           
+                # Handle edge case for turn, when turn has a number before minus
+                if type == "Turn" and self.is_wrong_turn_format(spec):
+                    spec = None
+                else:
+                    spec = float(spec.replace(",", "."))
+
             flight_specs.append(spec)
         
         return flight_specs
+
+
+    def is_wrong_turn_format(self, value: str) -> bool:
+        wrong_format = False
+        minus_index = value.find("-")
+        
+        if minus_index > -1 and not minus_index == 0:
+            wrong_format = True
+
+        return wrong_format
+
                 
