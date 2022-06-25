@@ -38,7 +38,8 @@ class ProdiscSpider(scrapy.Spider):
             badge = product.css("span.badge::text").get()
             disc["in_stock"] = True if badge is None or badge != "Utsolgt" else False
             url = product.css("a").attrib["href"]
-            disc["url"] = f"{self.start_urls[0]}{url}"
+            url = f"{self.start_urls[0]}{url}"
+            disc["url"] = url
             disc["retailer_id"] = create_retailer_id(brand, url)
 
             prices = product.css(".price-item::text").getall()
