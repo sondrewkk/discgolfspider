@@ -179,11 +179,12 @@ class DiscItemFlightSpecPipeline:
 
     def process_item(self, item: CreateDiscItem, spider: Spider):
         self.spider = spider
-        spider.logger.debug(f"Find suggestion")
-
+        
         if not self.enabled:
             spider.logger.info("Flight spec pipeline is not enabled.")
             return item
+
+        spider.logger.debug(f"Find suggestion")
 
         disc_item: CreateDiscItem = item
             
