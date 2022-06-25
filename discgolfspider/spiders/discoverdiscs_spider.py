@@ -7,7 +7,7 @@ import scrapy
 class DiscoverdiscsSpider(scrapy.Spider):
     name = "discoverdiscs"
     allowed_domains = ["discoverdiscs.no"]
-    start_urls = ["https://www.discoverdiscs.no"]
+    start_urls = ["https://discoverdiscs.no"]
 
     def parse(self, response):
         brands = response.css("div[id=\"childlink-Merker\"] > ul > li")
@@ -36,7 +36,8 @@ class DiscoverdiscsSpider(scrapy.Spider):
             disc["brand"] = brand  
 
             url = product.css("a").attrib["href"]
-            disc["url"] = f"{self.start_urls[0]}{url}"
+            url = f"{self.start_urls[0]}{url}"
+            disc["url"] = url
             disc["retailer_id"] = create_retailer_id(brand, url)
 
             prices = product.css(".price-item::text").getall()
