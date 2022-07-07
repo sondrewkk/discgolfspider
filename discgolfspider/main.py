@@ -5,7 +5,7 @@ from scrapy.utils.log import logger, configure_logging
 
 from discgolfspider.spiders.guru_spider import GuruSpider
 #from discgolfspider.spiders.dgshop_spider import DgshopSpider
-#from discgolfspider.spiders.aceshop_spider import AceshopSpider
+from discgolfspider.spiders.aceshop_spider import AceshopSpider
 from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
 from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
 #from discgolfspider.spiders.krokholdgs_spider import KrokholDgsSpider
@@ -29,7 +29,7 @@ runner = CrawlerRunner(settings)
 def crawl():
     #yield runner.crawl(DgshopSpider)               Ingen avtale
     yield runner.crawl(GuruSpider)                 
-    #yield runner.crawl(AceshopSpider)              Ingen avtale
+    yield runner.crawl(AceshopSpider)              
     yield runner.crawl(GolfdiscerSpider)
     yield runner.crawl(FrisbeebutikkenSpider)
     #yield runner.crawl(KrokholDgsSpider)           Ingen avtale
