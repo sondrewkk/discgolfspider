@@ -45,11 +45,11 @@ class DiscoverdiscsSpider(scrapy.Spider):
 
             flight_specs = product.css(".disc-info__value::text").getall()
 
-            if not flight_specs:
-                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
-            else:
+            if flight_specs and len(flight_specs) == 4:
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [float(spec) for spec in flight_specs]
-
+            else:
+                self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
 
             yield disc
 
