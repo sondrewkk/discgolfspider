@@ -26,7 +26,7 @@ class StarframeSpider(scrapy.Spider):
             url = product.css('.__product_url').attrib["href"]
             disc["url"] = url
 
-            brand = product.css(".manufacturers::text").get().strip()
+            brand = product.css(".manufacturers").attrib["data-manufacturer"].strip()
             disc["brand"] = brand
 
             disc["retailer_id"] = create_retailer_id(brand, url)
