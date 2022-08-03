@@ -7,16 +7,16 @@ import scrapy
 class GolfdiscerSpider(scrapy.Spider):
     name = "golfdiscer"
     allowed_domains = ["golfdiscer.no"]
-    start_urls = ["https://golfdiscer.no"]
+    start_urls = ["https://golfdiscer.no/collections/golfdiscer"]
 
     def parse(self, response):
-        brands = response.css(".top-navigation > li ul.level0").xpath("li[2]/div/ul/li")
+        brands = response.css(".nav-merke > li")
 
         for brand in brands:
-            brand_path = brand.css("a::attr(href)").get()
-            brand_name = brand.css("a::text").get().rstrip("\n").title()
+            brand_path = brand.css("a::attr(href)").get().rsplit("/", 1)[1]
+            brand_name = brand.css("a::text").get().strip()
 
-            next_page = f"{self.start_urls[0]}{brand_path}"
+            next_page = f"{self.start_urls[0]}/{brand_path}"
 
             if next_page is not None:
                 yield response.follow(
