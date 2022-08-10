@@ -1,5 +1,6 @@
 from ..items import CreateDiscItem
 from ..helpers.retailer_id import create_retailer_id
+from urllib.parse import urljoin
 
 import scrapy
 
@@ -13,11 +14,11 @@ class GolfdiscerSpider(scrapy.Spider):
         brands = response.css(".nav-merke > li")
 
         for brand in brands:
-            brand_path = brand.css("a::attr(href)").get().rsplit("/", 1)[1]
+            brand_path = brand.css("a::attr(href)").get()
             brand_name = brand.css("a::text").get().strip()
 
-            next_page = f"{self.start_urls[0]}/{brand_path}"
-
+            next_page = urljoin(response.url, brand_path)
+            
             if next_page is not None:
                 yield response.follow(
                     next_page,
@@ -49,7 +50,7 @@ class GolfdiscerSpider(scrapy.Spider):
             disc["fade"] = float(fade.strip()) if fade else None
 
             url = product.css(".product-image > a::attr(href)").get()
-            disc["url"] = f"{self.start_urls[0]}{url}"
+            disc["url"] = urljoin("https://golfdiscer.no", url)
             disc["retailer_id"] = create_retailer_id(brand, url)
  
             yield disc
