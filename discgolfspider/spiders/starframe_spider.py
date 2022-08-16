@@ -33,7 +33,12 @@ class StarframeSpider(scrapy.Spider):
             disc["price"] = int(product.css(".price::text").get().strip().replace(",-", ""))
     
             flight_specs = product.css('.product_box_tag > span::text').getall()
-            flight_specs = [float(spec.replace(",", ".")) for spec in flight_specs]
-            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+            
+            if flight_specs and len(flight_specs) == 4:
+                flight_specs = [float(spec.replace(",", ".")) for spec in flight_specs]
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+            else:
+                self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
 
             yield disc
