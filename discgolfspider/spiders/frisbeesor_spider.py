@@ -37,7 +37,9 @@ class FrisbeesorSpider(scrapy.Spider):
             disc = CreateDiscItem()
             disc["name"] = product.css(".name > a::text").get().lower().title()
             disc["image"] = product.css('img::attr(src)').get()
-            disc["in_stock"] = True
+
+            is_out_of_stock = product.css(".out-of-stock-label")
+            disc["in_stock"] = False if is_out_of_stock else True
 
             url = product.css('a::attr(href)').get()
             disc["url"] = url
