@@ -42,3 +42,7 @@ class StarframeSpider(scrapy.Spider):
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
 
             yield disc
+        
+        next_page = response.css("a.paginator_link_next::attr(href)").get()
+        if next_page is not None:
+            yield response.follow(next_page, callback=self.parse)
