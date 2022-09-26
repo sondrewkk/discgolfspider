@@ -31,42 +31,39 @@ class GuruSpider(scrapy.Spider):
 
         for disc_product in disc_products:
 
-            # If the disc product is not published, skip this disc product
-            if disc_product["status"] == "draft":
-                continue
+            try:
+                # If the disc product is not published, skip this disc product
+                if disc_product["status"] == "draft":
+                    continue
 
-            disc = CreateDiscItem()
-            disc["name"] = disc_product["name"]
-            disc["image"] = disc_product["images"][0]["src"]
+                disc = CreateDiscItem()
+                disc["name"] = disc_product["name"]
+                disc["image"] = disc_product["images"][0]["src"]
 
-            in_stock = True if disc_product["stock_status"] == "instock" else False
-            disc["in_stock"] = in_stock
-            
-            url = disc_product["permalink"]
-            disc["url"] = url
-            disc["spider_name"] = self.name
-            
-            attributes = disc_product["attributes"]
-            brand = self.get_attribute(attributes, "Produsent")
-            disc["brand"] = brand
-            disc["retailer"] = self.allowed_domains[0]
-            disc["retailer_id"] = create_retailer_id(brand, url)
-            
-            flight_specs = self.parse_flight_spec(attributes)
-            if None in flight_specs and in_stock:
-                self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
+                in_stock = True if disc_product["stock_status"] == "instock" else False
+                disc["in_stock"] = in_stock
+                
+                url = disc_product["permalink"]
+                disc["url"] = url
+                disc["spider_name"] = self.name
+                
+                attributes = disc_product["attributes"]
+                brand = self.get_attribute(attributes, "Produsent")
+                disc["brand"] = brand
+                disc["retailer"] = self.allowed_domains[0]
+                disc["retailer_id"] = create_retailer_id(brand, url)
+                
+                flight_specs = self.parse_flight_spec(attributes)
+                if None in flight_specs and in_stock:
+                    self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
 
-            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+                disc["price"] = self.calculate_price(disc_product["price"], disc_product["tax_status"], in_stock)
 
-            if in_stock:
-                price = float(disc_product["price"])
- 
-                if disc_product["tax_status"] == "taxable":
-                    price *= 1.25 # Add MVA
-
-            disc["price"] = price if in_stock else -9999.0
-
-            yield disc
+                yield disc
+            except Exception as e:
+                self.logger.error(f"Error parsing disc: {disc_product['name']}({disc_product['permalink']})")
+                self.logger.error(e)
 
         # Check for next page
         headers: Headers = response.headers
@@ -142,4 +139,13 @@ class GuruSpider(scrapy.Spider):
 
         return wrong_format
 
-                
+    def calculate_price(self, price: str, tax_status: str, in_stock: bool) -> float:
+        calculated_price = -9999.0
+        
+        if in_stock and price:
+            calculated_price = float(price)
+
+            if tax_status == "taxable":
+                calculated_price *= 1.25
+
+        return calculated_price
