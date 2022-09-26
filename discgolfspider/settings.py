@@ -96,7 +96,7 @@ ITEM_PIPELINES = {
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # Crawl interval
-CRAWL_INTERVAL = int(os.getenv("CRAWL_INTERVAL"))  # One hour default
+CRAWL_INTERVAL = float(os.getenv("CRAWL_INTERVAL", 3600))  # One hour default
 
 # API Configuration
 API_URL = os.getenv("API_URL")

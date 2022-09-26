@@ -1,7 +1,7 @@
 from twisted.internet import reactor, defer, task
-from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 from scrapy.utils.log import logger, configure_logging
+from scrapy.crawler import CrawlerRunner
 
 from discgolfspider.spiders.guru_spider import GuruSpider
 #from discgolfspider.spiders.dgshop_spider import DgshopSpider
@@ -27,20 +27,23 @@ runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
 def crawl():
-    #yield runner.crawl(DgshopSpider)               Ingen avtale
-    yield runner.crawl(GuruSpider)                 
-    yield runner.crawl(AceshopSpider)              
-    yield runner.crawl(GolfdiscerSpider)
-    yield runner.crawl(FrisbeebutikkenSpider)
-    #yield runner.crawl(KrokholDgsSpider)           Ingen avtale
-    yield runner.crawl(FrisbeesorSpider)
-    yield runner.crawl(DiscgolfdynastySpider)      
-    #yield runner.crawl(FrisbeefeberSpider)         Ingen avtale
-    #yield runner.crawl(SpinnvilldgSpider)          Ingen avtale
-    yield runner.crawl(DiscoverdiscsSpider)
-    yield runner.crawl(ProdiscSpider)
-    #yield runner.crawl(TbksportSpider)             Ingen avtale
-    yield runner.crawl(StarframeSpider)
+    try:
+        #yield runner.crawl(DgshopSpider)               Ingen avtale
+        yield runner.crawl(GuruSpider)                 
+        yield runner.crawl(AceshopSpider)              
+        yield runner.crawl(GolfdiscerSpider)
+        yield runner.crawl(FrisbeebutikkenSpider)
+        #yield runner.crawl(KrokholDgsSpider)           Ingen avtale
+        yield runner.crawl(FrisbeesorSpider)
+        yield runner.crawl(DiscgolfdynastySpider)      
+        #yield runner.crawl(FrisbeefeberSpider)         Ingen avtale
+        #yield runner.crawl(SpinnvilldgSpider)          Ingen avtale
+        yield runner.crawl(DiscoverdiscsSpider)
+        yield runner.crawl(ProdiscSpider)
+        #yield runner.crawl(TbksportSpider)             Ingen avtale
+        yield runner.crawl(StarframeSpider)
+    except Exception as e:
+        logger.error(f"Error in crawl: {e}")
 
     return
 
@@ -51,7 +54,7 @@ def cb_loop_done(result):
 
 
 def cb_loop_error(failure):
-    logger.error(failure)
+    logger.error("Crawl process failed. Reason: \n {}".format(failure))
     reactor.stop()
 
 
