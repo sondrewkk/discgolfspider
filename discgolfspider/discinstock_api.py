@@ -1,6 +1,6 @@
 import requests
 from discgolfspider.items import DiscItem, CreateDiscItem
-from scrapy.exceptions import CloseSpider
+from scrapy.exceptions import CloseSpider, DropItem
 from scrapy.utils.log import logger
 
 
@@ -38,6 +38,7 @@ class DiscinstockApi:
         if response.status_code != 201:
             logger.error(f"{disc['spider_name']} | Could not add {disc['name']}({disc['url']}): {response.reason}")
             logger.debug(f"{response.content}")
+            raise DropItem(f"Could not add {disc['name']}. Verify that the disc has all required fields.")
 
         added_disc: DiscItem = response.json()
         return added_disc

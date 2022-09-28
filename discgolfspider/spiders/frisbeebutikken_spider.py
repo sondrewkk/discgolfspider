@@ -1,3 +1,4 @@
+from urllib.parse import parse_qs, urlparse
 from ..items import CreateDiscItem
 from ..helpers.retailer_id import create_retailer_id
 
@@ -5,15 +6,15 @@ import scrapy
 
 class FrisbeebutikkenSpider(scrapy.Spider):
     name = "frisbeebutikken"
-    allowed_domains = ["shop.frisbeebutikken.no"]
-    start_urls = ["https://shop.frisbeebutikken.no/categories/golfdisker"]
+    allowed_domains = ["frisbeebutikken.no"]
+    start_urls = ["https://frisbeebutikken.no/categories/golfdisker/sort-by/1/?page=1"]
 
 
     def parse(self, response):
         for product in response.css(".product-box"):
             disc = CreateDiscItem()
             disc["name"] = product.css(".title::text").get()
-            disc["image"] = product.css(".image-mainimage img::attr(src)").get()
+            disc["image"] = product.css(".image img::attr(src)").get()
             
             brand = product.css(".manufacturer-box img::attr(alt)").get()
             url = product.css(".product_box_title_row a::attr(href)").get()
