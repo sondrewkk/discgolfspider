@@ -1,5 +1,7 @@
+from typing import Optional
 from scrapy.http import Headers
 from scrapy import Request
+from discgolfspider.helpers.brand_helper import BrandHelper
 from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
@@ -27,7 +29,6 @@ class DiscshopenSpider(scrapy.Spider):
 
     def parse(self, response):
         products = response.json()
-        self.logger.debug(products)
 
         disc_products = [product for product in products if self.is_disc(product)]
 
@@ -50,12 +51,14 @@ class DiscshopenSpider(scrapy.Spider):
                 disc["spider_name"] = self.name
                 
                 #attributes = disc_product["attributes"]
-                #brand = self.get_attribute(attributes, "Produsent")
-                #disc["brand"] = brand
+                brand = self.get_brand_from_tags(disc_product["tags"])
+                disc["brand"] = brand
                 disc["retailer"] = self.allowed_domains[0]
-                #disc["retailer_id"] = create_retailer_id(brand, url)      
+                disc["retailer_id"] = create_retailer_id(brand, url)        # type: ignore
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
-                disc["price"] = disc_product["price"]
+
+                price = float(disc_product["price"])
+                disc["price"] = price
 
                 yield disc
             except Exception as e:
@@ -95,44 +98,34 @@ class DiscshopenSpider(scrapy.Spider):
         return next_page
 
     
-    # def get_attribute(self, attributes: list, value: str) -> str:   
-    #     attribute = next((attr for attr in attributes if attr["name"] == value), None)
+    def get_brand_from_tags(self, tags: list) -> Optional[str]:
+        for tag in tags:
+            name = tag["name"]
+            self.logger.debug(f"Checking tag: {name}")
 
-    #     if not attribute:
-    #         self.logger.debug(f"Could not find attribute: {value}")
+            if "disc" in name:
+                name = " ".join(tag["name"].split("disc"))
+                
+            brand = BrandHelper.normalize(name)
+            self.logger.debug(f"Brand: {brand}")
+            
+            if brand is not None:
+                return brand
+
+        return None
+
+    # def get_flight_spec_from_description(self, description: str) -> Optional[list[float]]:
+    #     self.logger.debug(f"Description: {description}")
+
+    #     description = description.lower()
+    #     specs_exist = False
+    #     flight_specs = ["speed", "glide", "turn", "fade"]
+        
+    #     for spec in flight_specs:
+    #         specs_exist = True if spec in description else False
+
+    #     if not specs_exist:
     #         return None
 
-    #     if len(attribute["options"]) == 0:
-    #         self.logger.debug(f"attribute ({value} has no value")
-    #         return None
-
-    #     return attribute["options"][0]
-
-
-    # def parse_flight_spec(self, attributes: list) -> list:
-    #     spec_types = ["Speed", "Glide", "Turn", "Fade"]
-    #     flight_specs = []
-
-    #     for type in spec_types:
-    #         spec = self.get_attribute(attributes, type)
-
-    #         if spec:
-    #             # Handle edge case for turn, when turn has a number before minus
-    #             if type == "Turn" and self.is_wrong_turn_format(spec):
-    #                 spec = None
-    #             else:
-    #                 spec = float(spec.replace(",", "."))
-
-    #         flight_specs.append(spec)
         
-    #     return flight_specs
 
-
-    # def is_wrong_turn_format(self, value: str) -> bool:
-    #     wrong_format = False
-    #     minus_index = value.find("-")
-        
-    #     if minus_index > -1 and not minus_index == 0:
-    #         wrong_format = True
-
-    #     return wrong_format
