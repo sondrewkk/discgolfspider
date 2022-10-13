@@ -1,3 +1,4 @@
+import traceback
 from typing import Optional
 from scrapy.http import Headers
 from scrapy import Request
@@ -41,7 +42,12 @@ class DiscshopenSpider(scrapy.Spider):
 
                 disc = CreateDiscItem()
                 disc["name"] = disc_product["name"]
-                disc["image"] = disc_product["images"][0]["src"]
+
+                image = "https://discshopen.no/wp-content/uploads/woocommerce-placeholder-416x416.png"
+                if len(disc_product["images"]) > 0:
+                    image = disc_product["images"][0]["src"]
+
+                disc["image"] = image
 
                 in_stock = True if disc_product["stock_status"] == "instock" else False
                 disc["in_stock"] = in_stock
@@ -57,13 +63,16 @@ class DiscshopenSpider(scrapy.Spider):
                 disc["retailer_id"] = create_retailer_id(brand, url)        # type: ignore
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
 
-                price = float(disc_product["price"])
+                price = -9999.0
+                if disc_product["price"]:
+                    price = float(disc_product["price"])
+                
                 disc["price"] = price
 
                 yield disc
             except Exception as e:
                 self.logger.error(f"Error parsing disc: {disc_product['name']}({disc_product['permalink']})")
-                self.logger.error(e)
+                self.logger.exception(e)
 
         # Check for next page
         headers: Headers = response.headers
@@ -103,8 +112,8 @@ class DiscshopenSpider(scrapy.Spider):
             name = tag["name"]
             self.logger.debug(f"Checking tag: {name}")
 
-            if "disc" in name:
-                name = " ".join(tag["name"].split("disc"))
+            # if "disc" in name:
+            #     name = " ".join(tag["name"].split("disc"))
                 
             brand = BrandHelper.normalize(name)
             self.logger.debug(f"Brand: {brand}")

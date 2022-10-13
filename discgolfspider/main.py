@@ -17,6 +17,7 @@ from discgolfspider.spiders.discoverdiscs_spider import DiscoverdiscsSpider
 from discgolfspider.spiders.prodisc_spider import ProdiscSpider
 #from discgolfspider.spiders.tbksport_spider import TbksportSpider
 from discgolfspider.spiders.starframe_spider import StarframeSpider
+from discgolfspider.spiders.discshopen_spider import DiscshopenSpider
 
 
 settings = get_project_settings()
@@ -42,6 +43,7 @@ def crawl():
         yield runner.crawl(ProdiscSpider)
         #yield runner.crawl(TbksportSpider)             Ingen avtale
         yield runner.crawl(StarframeSpider)
+        yield runner.crawl(DiscshopenSpider)
     except Exception as e:
         logger.error(f"Error in crawl: {e}")
 
