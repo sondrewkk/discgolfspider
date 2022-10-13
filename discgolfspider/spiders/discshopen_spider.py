@@ -63,9 +63,9 @@ class DiscshopenSpider(scrapy.Spider):
                 disc["retailer_id"] = create_retailer_id(brand, url)        # type: ignore
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
 
-                price = -9999.0
+                price: int = -9999
                 if disc_product["price"]:
-                    price = float(disc_product["price"])
+                    price = int(disc_product["price"])
                 
                 disc["price"] = price
 
