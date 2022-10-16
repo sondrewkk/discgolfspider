@@ -13,7 +13,7 @@ import scrapy
 class DiscshopenSpider(scrapy.Spider):
     name = "discshopen"
     allowed_domains = ["discshopen.no"]
-    start_urls = ["https://discshopen.no/wp-json/wc/v3/products?per_page=100&page=1"]
+    start_urls = ["https://discshopen.no/wp-json/wc/v3/products?page=1"]
     http_auth_domain = "discshopen.no"
 
     def __init__(self, name=None, **kwargs):
