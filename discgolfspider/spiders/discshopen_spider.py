@@ -38,6 +38,7 @@ class DiscshopenSpider(scrapy.Spider):
             try:
                 # If the disc product is not published, skip this disc product
                 if disc_product["status"] == "draft":
+                    self.logger.debug(f"Disc product {disc_product['name']} {disc_product['permalink']} is not published, skipping")
                     continue
 
                 disc = CreateDiscItem()
@@ -84,7 +85,7 @@ class DiscshopenSpider(scrapy.Spider):
 
     def is_disc(self, product: dict) -> bool:
         product_type: str = product["categories"][0]["slug"]
-        disc_products = ["distance-driver", "driver", "fairway-driver", "midrange", "putter"]
+        disc_products = ["distance-driver", "driver", "driver-discer", "fairway-driver", "midrange", "putter"]
         return product_type in disc_products
 
 
