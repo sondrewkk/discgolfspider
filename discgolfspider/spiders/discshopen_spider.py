@@ -62,7 +62,13 @@ class DiscshopenSpider(scrapy.Spider):
                 disc["brand"] = brand
                 disc["retailer"] = self.allowed_domains[0]
                 disc["retailer_id"] = create_retailer_id(brand, url)        # type: ignore
-                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
+                flight_specs = self.get_flight_spec_from_meta_data(disc_product["meta_data"])
+
+                if flight_specs is not None and len(flight_specs) == 4:
+                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+                else:
+                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
+                    self.logger.warning(f"Flight specs not found for disc: {disc['name']}({url})")
 
                 price: int = -9999
                 if disc_product["price"]:
@@ -124,18 +130,11 @@ class DiscshopenSpider(scrapy.Spider):
 
         return None
 
-    # def get_flight_spec_from_description(self, description: str) -> Optional[list[float]]:
-    #     self.logger.debug(f"Description: {description}")
-
-    #     description = description.lower()
-    #     specs_exist = False
-    #     flight_specs = ["speed", "glide", "turn", "fade"]
+    def get_flight_spec_from_meta_data(self, meta_data: list) -> list[float]:
+        flight_specs_values = ["speed", "glide", "turn", "fade"]
+        flight_specs = [float(flight_spec["value"]) for flight_spec in meta_data if flight_spec["key"] in flight_specs_values]
         
-    #     for spec in flight_specs:
-    #         specs_exist = True if spec in description else False
-
-    #     if not specs_exist:
-    #         return None
+        return flight_specs
 
         
 
