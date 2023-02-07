@@ -17,6 +17,7 @@ BOT_NAME = "discgolfspider"
 SPIDER_MODULES = ["discgolfspider.spiders"]
 NEWSPIDER_MODULE = "discgolfspider.spiders"
 
+REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = "discinstock_crawler (+http://www.discinstock.no)"
@@ -130,7 +131,7 @@ if GURU_API_SECRET_FILE:
     with open(GURU_API_SECRET_FILE, "r") as file:
         GURU_API_SECRET = file.read()
 
-# Discshopen autj
+# Discshopen auth
 DISCSHOPEN_API_KEY = os.getenv("DISCSHOPEN_API_KEY")
 DISCSHOPEN_API_SECRET = os.getenv("DISCSHOPEN_API_SECRET")
 
@@ -143,6 +144,14 @@ DISCSHOPEN_API_SECRET_FILE = os.getenv("DISCSHOPEN_API_SECRET_FILE")
 if DISCSHOPEN_API_SECRET_FILE:
     with open(DISCSHOPEN_API_SECRET_FILE, "r") as file:
         DISCSHOPEN_API_SECRET = file.read()
+
+# DIscsjappa auth
+DISCSJAPPA_API_KEY = os.getenv("DISCSJAPPA_API_KEY")
+
+DISCSJAPPA_API_KEY_FILE = os.getenv("DISCSJAPPA_API_KEY_FILE")
+if DISCSJAPPA_API_KEY_FILE:
+    with open(DISCSJAPPA_API_KEY_FILE, "r") as file:
+        DISCSJAPPA_API_KEY = file.read()
 
 # Pipeline flags
 ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = os.getenv("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE") == "True"
