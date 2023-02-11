@@ -15,7 +15,8 @@ class AceshopSpider(scrapy.Spider):
             disc["name"] = product.css(".product_box_title_row a::text").get()
             disc["image"] = product.css(".image img::attr(src)").get()
 
-            brand = product.css("p.manufacturers::text").get().strip().title()
+            brand = product.css(".product::attr(data-manufacturer)").get().strip().title()
+            self.logger.debug(f"Found brand { brand }")
             url = product.css(".product_box_title_row a::attr(href)").get()
             disc["url"] = url
             disc["spider_name"] = self.name

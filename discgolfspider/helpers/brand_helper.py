@@ -7,6 +7,7 @@ class BrandHelper:
         "Alfa Discs",
         "Axiom",
         "Clash Discs",
+        "DGA",
         "Dino Discs",
         "Disc Golf UK",
         "Discmania",
@@ -48,7 +49,7 @@ class BrandHelper:
         brand_name = brand_name.split(" ")[0].lower()
 
         # Special case for brand name TSA
-        if brand_name == "tsa":
+        if brand_name == "tsa" or brand_name == "thought":
             return "Thought Space Athletics"
 
         if brand_name == "disc":
