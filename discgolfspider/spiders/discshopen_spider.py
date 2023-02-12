@@ -1,4 +1,3 @@
-import traceback
 from typing import Optional
 from scrapy.http import Headers
 from scrapy import Request
@@ -6,14 +5,13 @@ from discgolfspider.helpers.brand_helper import BrandHelper
 from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
-#import discgolfspider.settings as settings
 import scrapy
 
 
 class DiscshopenSpider(scrapy.Spider):
     name = "discshopen"
     allowed_domains = ["discshopen.no"]
-    start_urls = ["https://discshopen.no/wp-json/wc/v3/products?page=1"]
+    start_urls = ["https://discshopen.no/wp-json/wc/v3/products?page=1&per_page=100"]
     http_auth_domain = "discshopen.no"
 
     def __init__(self, name=None, **kwargs):
@@ -29,18 +27,11 @@ class DiscshopenSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        products = response.json()
-
-        disc_products = [product for product in products if self.is_disc(product)]
+        products = self.unique_dicts(response.json(), "id")
+        disc_products = [product for product in products if self.is_disc(product) and not self.is_draft(product["status"])]
 
         for disc_product in disc_products:
-
             try:
-                # If the disc product is not published, skip this disc product
-                if disc_product["status"] == "draft":
-                    self.logger.debug(f"Disc product {disc_product['name']} {disc_product['permalink']} is not published, skipping")
-                    continue
-
                 disc = CreateDiscItem()
                 disc["name"] = disc_product["name"]
 
@@ -57,7 +48,6 @@ class DiscshopenSpider(scrapy.Spider):
                 disc["url"] = url
                 disc["spider_name"] = self.name
                 
-                #attributes = disc_product["attributes"]
                 brand = self.get_brand_from_tags(disc_product["tags"])
                 disc["brand"] = brand
                 disc["retailer"] = self.allowed_domains[0]
@@ -68,7 +58,11 @@ class DiscshopenSpider(scrapy.Spider):
                     disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
                 else:
                     disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
-                    self.logger.warning(f"Flight specs not found for disc: {disc['name']}({url})")
+                    message = f"Flight specs not found for disc: {disc['name']}({url})"
+                    if in_stock:
+                        self.logger.warning(message)
+                    else:
+                        self.logger.info(message)
 
                 price: int = -9999
                 if disc_product["price"]:
@@ -88,12 +82,16 @@ class DiscshopenSpider(scrapy.Spider):
         if next_page is not None:
             yield Request(next_page, callback=self.parse)
 
+    def unique_dicts(self, dict_list, key):
+        return [{k: v for k, v in item.items()} for item in dict_list if item[key] not in [i[key] for i in dict_list if i != item]]
 
     def is_disc(self, product: dict) -> bool:
         product_type: str = product["categories"][0]["slug"]
         disc_products = ["distance-driver", "driver", "driver-discer", "fairway-driver", "midrange", "putter"]
         return product_type in disc_products
-
+    
+    def is_draft(self, status: str) -> bool:
+        return status == "draft"
 
     def get_next_page(self, headers: Headers) -> str:
         link_header: str = headers.get("Link").decode("utf-8")
