@@ -47,6 +47,9 @@ class DiscgolfdynastySpider(scrapy.Spider):
                 if not disc["image"]:
                     disc["image"] = "https://via.placeholder.com/300"
 
+                # default values
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
+
                 yield response.follow(
                     disc["url"],
                     callback=self.parse_product_details,
@@ -63,20 +66,30 @@ class DiscgolfdynastySpider(scrapy.Spider):
             yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
 
     def parse_product_details(self, response, disc):
-        
-        flight_specs = response.css(".product-description ul li::text").getall()
+        description = response.css(".product-description")
 
-        if flight_specs:
-            flight_specs = [s for s in flight_specs if s != "\n"]
-            flight_specs = flight_specs[:4]
-            flight_specs = [self.format_flight_spec(numeric_string) for numeric_string in flight_specs]
-            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+        if not description:
+            self.logger.warning(f"{disc['name']}({disc['url']}) no description")
+            
+        speed = description.css("li#ContentPlaceHolder1_lblSpeed::text").get()
+        glide = description.css("li#ContentPlaceHolder1_lblGlide::text").get()
+        turn = description.css("li#ContentPlaceHolder1_lblTurn::text").get()
+        fade = description.css("li#ContentPlaceHolder1_lblFade::text").get()
+        
+        if not speed or not glide or not turn or not fade:
+            self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {speed=}, {glide=}, {turn=}, {fade=}")
         else:
-            self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
-            disc["speed"], disc["glide"], disc["turn"] ,disc["fade"] = [None, None, None, None]
+            disc["speed"] = self.format_flight_spec(speed)
+            disc["glide"] = self.format_flight_spec(glide)
+            disc["turn"] = self.format_flight_spec(turn)
+            disc["fade"] = self.format_flight_spec(fade)
 
         yield disc
 
     def format_flight_spec(self, flight_spec) -> float:
         self.logger.debug(f"flight_spec: {flight_spec}")
-        return float(flight_spec.split(":")[1].strip())
+        try:
+            return float(flight_spec.split(":")[1].strip())
+        except ValueError as e:
+            self.logger.error(f"Error formatting flight spec: {flight_spec}. Exception: {e}")
+            return None
