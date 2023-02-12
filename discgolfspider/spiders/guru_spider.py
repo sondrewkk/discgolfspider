@@ -58,7 +58,9 @@ class GuruSpider(scrapy.Spider):
                     self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
 
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
-                disc["price"] = self.calculate_price(disc_product["price"], disc_product["tax_status"], in_stock)
+
+                price = self.calculate_price(disc_product["price"], disc_product["tax_status"], in_stock)
+                disc["price"] = price
 
                 yield disc
             except Exception as e:
@@ -121,6 +123,7 @@ class GuruSpider(scrapy.Spider):
             if spec:
                 # Handle edge case for turn, when turn has a number before minus
                 if type == "Turn" and self.is_wrong_turn_format(spec):
+                    self.logger.debug(f"Wrong turn format: {spec}")
                     spec = None
                 else:
                     spec = float(spec.replace(",", "."))
@@ -139,13 +142,14 @@ class GuruSpider(scrapy.Spider):
 
         return wrong_format
 
-    def calculate_price(self, price: str, tax_status: str, in_stock: bool) -> float:
-        calculated_price = -9999.0
-        
-        if in_stock and price:
+    def calculate_price(self, price: str, tax_status: str, in_stock: bool) -> float:     
+        if price and in_stock:
             calculated_price = float(price)
 
             if tax_status == "taxable":
                 calculated_price *= 1.25
+        else: 
+            calculated_price = -9999.0
+            self.logger.debug(f"Price is not set or disc is out of stock. {price=} {tax_status=} {in_stock=}")
 
         return calculated_price

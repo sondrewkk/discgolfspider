@@ -35,9 +35,13 @@ class DiscItemBrandPipeline:
         brand_normalized = BrandHelper.normalize(disc["brand"])
 
         if not brand_normalized:
-            spider.logger.error(
-                f"Could not scrape brand name ({ 'None' if not disc['brand'] else disc['brand']}) for disc with name {disc['name']}. In stock = {disc['in_stock']}"
-            )
+            message = f"Could not scrape brand name ({ 'None' if not disc['brand'] else disc['brand']}) for disc with name {disc['name']}. In stock = {disc['in_stock']}"
+
+            if disc["in_stock"]:
+                spider.logger.error(message)
+            else:
+                spider.logger.warning(message)
+
             raise DropItem("Brand not normalized.")
 
         disc["brand"] = brand_normalized
