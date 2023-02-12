@@ -28,10 +28,18 @@ class DiscoverdiscsSpider(scrapy.Spider):
         
         for product in products:
             disc = CreateDiscItem()
-            disc["name"] = product.css("span.card-information__text::text").get().replace("\n", "").strip()
+            name = product.css("span.card-information__text::text").get().replace("\n", "").strip()
+
+            if self.is_backpack(name):
+                self.logger.info(f"Skipping backpack: {name}")
+                continue
+
+            disc["name"] = name
             disc["image"] = product.css("img").attrib["src"]
             disc["spider_name"] = self.name
-            disc["in_stock"] = True                                                 #TODO: Verifiser om det er noen som er ikke i stock
+            
+            badge_text = product.css(".badge::text").get()
+            disc["in_stock"] = True if badge_text != "Utsolgt" else False
             disc["retailer"] = self.allowed_domains[0]
             disc["brand"] = brand  
 
@@ -56,3 +64,6 @@ class DiscoverdiscsSpider(scrapy.Spider):
         next_page = response.css("a.pagination__item--prev::attr(href)").get()
         if next_page is not None:
              yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
+
+    def is_backpack(self, name):
+        return "bag" in name.lower() or "backpack" in name.lower()
