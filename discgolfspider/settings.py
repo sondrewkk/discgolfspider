@@ -145,13 +145,21 @@ if DISCSHOPEN_API_SECRET_FILE:
     with open(DISCSHOPEN_API_SECRET_FILE, "r") as file:
         DISCSHOPEN_API_SECRET = file.read()
 
-# DIscsjappa auth
+# Discsjappa auth
 DISCSJAPPA_API_KEY = os.getenv("DISCSJAPPA_API_KEY")
 
 DISCSJAPPA_API_KEY_FILE = os.getenv("DISCSJAPPA_API_KEY_FILE")
 if DISCSJAPPA_API_KEY_FILE:
     with open(DISCSJAPPA_API_KEY_FILE, "r") as file:
         DISCSJAPPA_API_KEY = file.read()
+
+# Sendeskive auth
+SENDESKIVE_API_KEY = os.getenv("SENDESKIVE_API_KEY")
+
+SENDESKIVE_API_KEY_FILE = os.getenv("SENDESKIVE_API_KEY_FILE")
+if SENDESKIVE_API_KEY_FILE:
+    with open(SENDESKIVE_API_KEY_FILE, "r") as file:
+        SENDESKIVE_API_KEY = file.read()
 
 # Pipeline flags
 ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = os.getenv("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE") == "True"
