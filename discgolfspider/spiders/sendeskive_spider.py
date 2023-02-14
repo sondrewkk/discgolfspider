@@ -48,7 +48,7 @@ class SendeskiveSpider(scrapy.Spider):
             brand = product['vendor']
             if brand != "Discsjappa":
                 url = f"{self.api_base_url}/products/{product['id']}/metafields.json"        
-                yield scrapy.Request(url, headers=self.headers, callback=self.parse_product_with_metafields, meta={'download_timeout': 1}, cb_kwargs=dict(product=product))
+                yield scrapy.Request(url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs=dict(product=product))
 
         # Check if response containt next link header and foilow it if it does
         if "link" in response.headers:
@@ -61,7 +61,7 @@ class SendeskiveSpider(scrapy.Spider):
   
     def parse_product_with_metafields(self, response, product):
         self.logger.debug(f"Product: {product['title']}")
-        time.sleep(response.meta['download_timeout'])
+        time.sleep(0.5) # Shopify API rate limit is 2 requests per second
 
         metafields = response.json()["metafields"]
 
@@ -82,8 +82,7 @@ class SendeskiveSpider(scrapy.Spider):
 
             yield disc
         except Exception as e:
-            self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])})")
-            self.logger.error(e)
+            self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])}), reason: {e}")
 
     def clean_products(self, products):
         self.logger.debug(f"Cleaning {len(products)} products")
