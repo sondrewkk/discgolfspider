@@ -1,100 +1,126 @@
-from ..items import CreateDiscItem
-from ..helpers.retailer_id import create_retailer_id
+import re
+import time
+from discgolfspider.items import CreateDiscItem
+from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
 
 
 class ProdiscSpider(scrapy.Spider):
     name = "prodisc"
-    allowed_domains = ["prodisc.no"]
-    start_urls = ["https://prodisc.no"]
+
+    def __init__(self, name=None, **kwargs):
+        super().__init__(name, **kwargs)
+        settings = kwargs["settings"]
+        self.baseUrl = "https://prodiscnorge.myshopify.com/admin/api/2023-01"
+        self.token = settings["PRODISC_API_KEY"]
+        
+        if not self.token:
+            self.logger.error("No token found for prodisc.no")
+            return
+
+        self.headers = {
+            "X-Shopify-Access-Token": self.token
+        }
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(settings=crawler.settings)
+
+    def start_requests(self):
+        url = f"{self.baseUrl}/products.json?status=active&limit=100"
+        yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
-        brands = response.css("ul[id=\"HeaderMenu-MenuList-3\"] > li")
+        products = response.json()['products']
 
-        for brand in brands:
-            brand_name = brand.css("a::text").get().strip()
-            link_url = brand.css("a::attr(href)").get()
-            next_page = f"{self.start_urls[0]}{link_url}"
+        if len(products) == 0:
+            self.logger.error("No products found for prodisc.no")
+            return
+      
+        # Remove unwanted products  
+        products = self.clean_products(products)
 
-            if next_page is not None:
-                yield response.follow(
-                    next_page,
-                    callback=self.parse_products,
-                    cb_kwargs={"brand": brand_name},
-                )
+        for product in products:
+            url = f"{self.baseUrl}/products/{product['id']}/metafields.json"        
+            yield scrapy.Request(url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs=dict(product=product))
 
-    def parse_products(self, response, brand):
+        # Check if response containt next link header and follow it if it does
+        if "link" in response.headers:
+            links = response.headers["link"].decode("utf-8")
+            next_link_match = re.search('<([^>]+)>; rel="next"', links)
+
+            if next_link_match:
+                next_link = next_link_match.group(1)
+                yield scrapy.Request(next_link, headers=self.headers, callback=self.parse)
+    
+    def parse_product_with_metafields(self, response, product):
+        self.logger.debug(f"Product: {product['title']}")
+        
         try:
-            products = response.css("ul[id=\"product-grid\"] > li")
+            time.sleep(0.5) # Sleep to avoid rate limit
 
-            for product in products:
-                disc = CreateDiscItem()
-                
-                name = product.css("h3.card-information__text > a::text").get().replace("\n", "").strip()
-                url = product.css("a").attrib["href"]
-                url = f"{self.start_urls[0]}{url}"
-                disc["url"] = url
-                disc["retailer_id"] = create_retailer_id(brand, url)
+            disc = CreateDiscItem()
+            disc["name"] = product["title"]
+            disc["spider_name"] = self.name
+            disc["brand"] = product["vendor"]
+            disc["retailer"] = "prodisc.no"
+            disc["url"] = self.create_product_url(product["handle"])
+            disc["retailer_id"] = create_retailer_id(disc["brand"], disc["url"])
+            disc["image"] = product["image"]["src"]
 
-                if self.is_not_disc_item(name, url):
-                    self.logger.info(f"{name}({url}) is not a disc item. Skipping...")
-                    continue
+            variants = product["variants"]
+            disc["in_stock"] = True if self.get_inventory_quantity(variants) > 0 else False
+            disc["price"] = self.get_price_from_variant(variants[0])
+            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_spec(response.json()["metafields"])
 
-                disc["name"] = name
-                disc["image"] = product.css("img").attrib["src"]
-                disc["spider_name"] = self.name
-                disc["retailer"] = self.allowed_domains[0]
-                disc["brand"] = brand 
-
-                badge = product.css("span.badge::text").get()
-                disc["in_stock"] = True if badge is None or badge != "Utsolgt" else False
-                
-                prices = product.css(".price-item::text").getall()
-                prices = [price.strip().replace("\n", "").replace(".", "") for price in prices]
-                prices = [price for price in prices if price != ""]
-                disc["price"] = int(prices[len(prices) - 1].split(",")[0])
-
-                flight_specs = product.css("div[class*=\"flightbox-\"]::text").getall()
-                if flight_specs:
-                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [float(spec.replace(",", ".")) for spec in flight_specs]
-                else:
-                    self.logger.warning(f"{disc['name']}({disc['url']}) is missing flight spec data. {flight_specs=} ")
-                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
-
-                current_brand = product.css("div.caption-with-letter-spacing::text").get()
-                if current_brand:
-                    current_brand = current_brand.split(" ")[0]
-
-                # A measurement to fix the issue where latitude and westside discs is also in dynamic disc brand category
-                if current_brand in brand:
-                    yield disc
+            yield disc
         except Exception as e:
-            self.logger.error(f"Error parsing disc: {disc['name']}({disc['url']})")
+            self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])})")
             self.logger.error(e)
 
-        next_page = response.css("a.pagination__item--prev::attr(href)").get()
-        if next_page is not None:
-             yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
+    def clean_products(self, products):
+        self.logger.debug(f"Cleaning {len(products)} products")
 
-    def is_not_disc_item(self, name: str, url: str) -> bool:
-        return self.is_backpack(name, url) or self.is_raincover(name, url) or self.is_towel(name, url)
+        # Remove products with no variants
+        products = [product for product in products if len(product["variants"]) > 0]
 
-    def is_backpack(self, name: str, url: str) -> bool:
-        url_contains = "back-pack" in url or "bag" in url or "backpack" in url
-        name_contains = "back pack" in name.lower() or "bag" in name.lower() or "backpack" in name.lower()
-        return url_contains or name_contains
+        # Remove products that has wrong product type
+        allowed_product_types = ["Disc"]
+        products = [product for product in products if product["product_type"] in allowed_product_types]
+
+        self.logger.debug(f"Cleaned products: {len(products)}")
+
+        return products
+
+    def create_product_url(self, product_handle: str):
+        return f"https://prodisc.no/products/{product_handle}"
+
+    def get_inventory_quantity(self, variants) -> float:
+        return sum([float(variant["inventory_quantity"]) for variant in variants])
+
+    def get_price_from_variant(self, variant) -> float:
+        return float(variant["price"])
+
+    def get_flight_spec(self, metafields) -> tuple:
+        speed = glide = turn = fade = None
+
+        for metafield in metafields:
+            if metafield["key"] == "speed":
+                speed = float(metafield["value"])
+            elif metafield["key"] == "glide":
+                glide = float(metafield["value"])
+            elif metafield["key"] == "turn":
+                turn = float(metafield["value"])
+            elif metafield["key"] == "fade":
+                fade = float(metafield["value"])
+
+        # Raise exception if any of the flight spec values are missing
+        has_none_values = all(value is None for value in (speed, glide, turn, fade))
+        self.logger.debug(f"Has none values: {has_none_values}")
+
+        if has_none_values:
+            raise Exception(f"Missing flight spec values: (speed, glide, turn, fade) = {speed, glide, turn, fade}")
+
+        return speed, glide, turn, fade
     
-    def is_raincover(self, name: str, url: str) -> bool:
-        url_contains = "rain-cover" in url
-        name_contains = "rain cover" in name.lower()
-        return url_contains or name_contains
-
-    def is_towel(self, name: str, url: str) -> bool:
-        url_contains = "handkle" in url
-        name_contains = "håndkle" in name.lower()
-        return url_contains or name_contains
-
-# Ser ut til at disker som er lagret som in stock = False ikke klarer å skifte status til in stock = True
-# Diskene for prodisk prøver først å legge til disken fordi den tror den ikke eksisterer fra før,
-# deretter prøver den å oppdatere disken men finner ingen forskjeller... Burde ha instock forskjellig.

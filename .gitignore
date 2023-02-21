@@ -42,5 +42,11 @@ pip-wheel-metadata
 # scrapy
 scrapy.log
 
+# scrapyd
+dbs
+setup.py
+twistd.pid
+logs
+
 # env
 .env*

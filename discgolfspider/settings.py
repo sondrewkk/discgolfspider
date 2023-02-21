@@ -161,5 +161,13 @@ if SENDESKIVE_API_KEY_FILE:
     with open(SENDESKIVE_API_KEY_FILE, "r") as file:
         SENDESKIVE_API_KEY = file.read()
 
+# Prodisc auth
+PRODISC_API_KEY = os.getenv("PRODISC_API_KEY")
+
+PRODISC_API_KEY_FILE = os.getenv("PRODISC_API_KEY_FILE")
+if PRODISC_API_KEY_FILE:
+    with open(PRODISC_API_KEY_FILE, "r") as file:
+        PRODISC_API_KEY = file.read()
+
 # Pipeline flags
 ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = os.getenv("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE") == "True"
