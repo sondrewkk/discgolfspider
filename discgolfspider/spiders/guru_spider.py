@@ -64,8 +64,7 @@ class GuruSpider(scrapy.Spider):
 
                 yield disc
             except Exception as e:
-                self.logger.error(f"Error parsing disc: {disc_product['name']}({disc_product['permalink']})")
-                self.logger.error(e)
+                self.logger.error(f"Error parsing disc: {disc_product['name']}({disc_product['permalink']}). Reason: {e}")
 
         # Check for next page
         headers: Headers = response.headers

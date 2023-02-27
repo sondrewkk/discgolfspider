@@ -136,15 +136,15 @@ class UpdateDiscPipeline:
 
         # If there is no updates return the crawled disc
         if not difference:
-            self.spider.logger.info(f"{disc} has nothing to update.")
-            return None
+            self.spider.logger.debug(f"{disc} has nothing to update.")
+            return difference
 
         # Only update flight spec if the scraped item has value and stored has None
         # If the stored item already has a value, skip update. The stored disc
         # is weighted more than a new disc.
         for k in difference.keys():
             if self.is_flight_spec(k) and not self.is_flight_spec_updateable(disc[k], current_disc[k]) and not remove_flight_spec:
-                self.spider.logger.info(f"Crawled disc has different {k} value than the stored disc. {disc[k]} | {current_disc[k]}. Flag flightspec for removal.")
+                self.spider.logger.debug(f"Crawled disc has different {k} value than the stored disc. {disc[k]} | {current_disc[k]}. Flag flightspec for removal.")
                 remove_flight_spec = True
 
         if remove_flight_spec:
@@ -185,7 +185,7 @@ class DiscItemFlightSpecPipeline:
         self.spider = spider
         
         if not self.enabled:
-            spider.logger.info("Flight spec pipeline is not enabled.")
+            spider.logger.debug("Flight spec pipeline is not enabled.")
             return item
 
         spider.logger.debug(f"Find suggestion")
@@ -211,10 +211,10 @@ class DiscItemFlightSpecPipeline:
         try:
             flight_spec_suggestion = FlightSpecSuggester.find_suggestion(discs)
         except SuggestionError as err:
-            spider.logger.info(f"Could not find suggestion for {disc_item}. Message: {err}")
+            spider.logger.debug(f"Could not find suggestion for {disc_item}. Message: {err}")
             return disc_item
 
-        spider.logger.info(f"SUCCESSFULLY found flight spec for {disc_item}")
+        spider.logger.debug(f"SUCCESSFULLY found flight spec for {disc_item}")
         disc_item["speed"] = flight_spec_suggestion["speed"]
         disc_item["glide"] = flight_spec_suggestion["glide"]
         disc_item["turn"]  = flight_spec_suggestion["turn"]

@@ -40,7 +40,7 @@ DOWNLOAD_DELAY = 0.3
 # COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
-# TELNETCONSOLE_ENABLED = False
+TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
 # DEFAULT_REQUEST_HEADERS = {
@@ -51,13 +51,14 @@ DOWNLOAD_DELAY = 0.3
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 # SPIDER_MIDDLEWARES = {
-#    'discgolfspider.middlewares.DiscgolfspiderSpiderMiddleware': 543,
+#    'discgolfspider.middlewares.DiscgolfspiderSpiderMiddleware': 1,
 # }
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware': 100,
+    'discgolfspider.middlewares.DiscgolfspiderDownloaderMiddleware': 100,
+    'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware': 200,
 }
 
 # Enable or disable extensions
