@@ -114,13 +114,13 @@ class SendeskiveSpider(scrapy.Spider):
 
         for metafield in metafields:
             if metafield["key"] == "speed":
-                speed = float(metafield["value"])
+                speed = float(metafield["value"].replace(",", "."))
             elif metafield["key"] == "glide":
-                glide = float(metafield["value"])
+                glide = float(metafield["value"].replace(",", "."))
             elif metafield["key"] == "turn":
-                turn = float(metafield["value"])
+                turn = float(metafield["value"].replace(",", "."))
             elif metafield["key"] == "fade":
-                fade = float(metafield["value"])
+                fade = float(metafield["value"].replace(",", "."))
 
         # Raise exception if any of the flight spec values are missing
         has_none_values = all(value is None for value in (speed, glide, turn, fade))
