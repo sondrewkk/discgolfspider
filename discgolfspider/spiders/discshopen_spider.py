@@ -72,8 +72,11 @@ class DiscshopenSpider(scrapy.Spider):
 
                 yield disc
             except Exception as e:
-                self.logger.error(f"Error parsing disc: {disc_product['name']}({disc_product['permalink']})")
-                self.logger.exception(e)
+                msg = f"Error parsing disc: {disc_product['name']}({disc_product['permalink']}). Reason: {e}"
+                if disc_product["stock_status"] == "instock":
+                    self.logger.error(msg)
+                else:
+                    self.logger.warning(msg)
 
         # Check for next page
         headers: Headers = response.headers
@@ -116,9 +119,6 @@ class DiscshopenSpider(scrapy.Spider):
         for tag in tags:
             name = tag["name"]
             self.logger.debug(f"Checking tag: {name}")
-
-            # if "disc" in name:
-            #     name = " ".join(tag["name"].split("disc"))
                 
             brand = BrandHelper.normalize(name)
             self.logger.debug(f"Brand: {brand}")
@@ -129,10 +129,20 @@ class DiscshopenSpider(scrapy.Spider):
         return None
 
     def get_flight_spec_from_meta_data(self, meta_data: list) -> list[float]:
-        flight_specs_values = ["speed", "glide", "turn", "fade"]
-        flight_specs = [float(flight_spec["value"]) for flight_spec in meta_data if flight_spec["key"] in flight_specs_values]
+        flight_specs_values = {"speed": 0.0, "glide": 0.0, "turn": 0.0, "fade": 0.0}
         
-        return flight_specs
+        for meta in meta_data:
+            key = meta["key"].lower()
 
-        
+            if key in flight_specs_values:        
+                value = meta["value"]
+                if not value:
+                    raise ValueError(f"Flight spec ({key}). Value is empty")
 
+                try:
+                    value = float(meta["value"].replace(",", "."))
+                    flight_specs_values[key] = value
+                except Exception:
+                    raise ValueError(f"Could not parse flight spec ({key}). Value: {value}")
+
+        return list(flight_specs_values.values())
