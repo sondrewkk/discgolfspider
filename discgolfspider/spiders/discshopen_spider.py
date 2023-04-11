@@ -89,9 +89,9 @@ class DiscshopenSpider(scrapy.Spider):
         return [{k: v for k, v in item.items()} for item in dict_list if item[key] not in [i[key] for i in dict_list if i != item]]
 
     def is_disc(self, product: dict) -> bool:
-        product_type: str = product["categories"][0]["slug"]
-        disc_products = ["distance-driver", "driver", "driver-discer", "fairway-driver", "midrange", "putter"]
-        return product_type in disc_products
+        valid_categories = ["distance-driver", "driver", "driver-discer", "fairway-driver", "midrange", "putter"]
+        categories = product["categories"]
+        return any(category in (category["slug"] for category in categories) for category in valid_categories)
     
     def is_draft(self, status: str) -> bool:
         return status == "draft"
