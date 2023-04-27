@@ -7,11 +7,11 @@ from discgolfspider.items import CreateDiscItem
 import scrapy
 
 
-class GuruSpider(scrapy.Spider):
-    name = "guru"
-    allowed_domains = ["gurudiscgolf.no"]
-    start_urls = ["https://gurudiscgolf.no/wp-json/wc/v3/products?per_page=100&page=1"]
-    http_auth_domain = "gurudiscgolf.no"
+class WeAreDiscgolfSpider(scrapy.Spider):
+    name = "wearediscgolf"
+    allowed_domains = ["wearediscgolf.no"]
+    start_urls = ["https://wearediscgolf.no/wp-json/wc/v3/products?per_page=100&page=1"]
+    http_auth_domain = "wearediscgolf.no"
 
     def __init__(self, name=None, **kwargs):
         super().__init__(name, **kwargs)
