@@ -11,7 +11,6 @@ from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
 from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 from discgolfspider.spiders.discoverdiscs_spider import DiscoverdiscsSpider
 from discgolfspider.spiders.prodisc_spider import ProdiscSpider
-from discgolfspider.spiders.starframe_spider import StarframeSpider
 from discgolfspider.spiders.discshopen_spider import DiscshopenSpider
 from discgolfspider.spiders.discsjappa_spider import DiscsjappaSpider
 from discgolfspider.spiders.sendeskive_spider import SendeskiveSpider
@@ -35,7 +34,6 @@ def crawl():
         yield runner.crawl(DiscgolfdynastySpider)      
         yield runner.crawl(DiscoverdiscsSpider)
         yield runner.crawl(ProdiscSpider)
-        yield runner.crawl(StarframeSpider)
         yield runner.crawl(DiscshopenSpider)
         yield runner.crawl(DiscsjappaSpider)
         yield runner.crawl(SendeskiveSpider)
