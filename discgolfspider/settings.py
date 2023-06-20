@@ -170,5 +170,13 @@ if PRODISC_API_KEY_FILE:
     with open(PRODISC_API_KEY_FILE, "r") as file:
         PRODISC_API_KEY = file.read()
 
+# Golfkongen auth
+GOLFKONGEN_API_KEY = os.getenv("GOLFKONGEN_API_KEY")
+
+GOLFKONGEN_API_KEY_FILE = os.getenv("GOLFKONGEN_API_KEY_FILE")
+if GOLFKONGEN_API_KEY_FILE:
+    with open(GOLFKONGEN_API_KEY_FILE, "r") as file:
+        GOLFKONGEN_API_KEY = file.read()
+
 # Pipeline flags
 ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = os.getenv("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE") == "True"
