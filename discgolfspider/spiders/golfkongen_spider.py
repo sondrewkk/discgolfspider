@@ -2,7 +2,6 @@ from discgolfspider.items import CreateDiscItem
 from discgolfspider.helpers.retailer_id import create_retailer_id
 from base64 import b64encode
 from urllib.parse import urlencode
-from pprint import pprint
 from typing import Tuple
 
 import scrapy
@@ -57,27 +56,14 @@ class GolfkongenSpider(scrapy.Spider):
         products = self.clean_products(products)
 
         # Parse products
-        self.parse_products(products)
-
-        # When downloaded prdocuts is equal to limit, there are more products to download
-        if product_count == self.query_params["limit"]:
-            self.query_params["offset"] += self.query_params["limit"]
-            params = urlencode(self.query_params)
-            url = f"{self.base_url}/products?{params}"
-
-            yield scrapy.Request(url, headers=self.headers, callback=self.parse)
-
-    def parse_products(self, products):
         for product in products:
             try:
-                #self.logger.debug(f"{product['title']}")
-
                 disc = CreateDiscItem()
                 disc["name"] = self.clean_name(product["title"])
                 disc["spider_name"] = self.name
                 disc["retailer"] = "golfkongen.no"
 
-                brand = self.find_brand(product)  # TODO: Parse brand
+                brand = self.find_brand(product)
                 disc["brand"] = brand
 
                 url = product["url"]
@@ -87,18 +73,41 @@ class GolfkongenSpider(scrapy.Spider):
                 disc["in_stock"] = self.is_product_in_stock(product)
                 disc["price"] = int(product["price"])
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_specs(product["description"])
-                self.logger.debug(f"name: {disc['name']}")
 
-                # yield disc
-            except Exception as e:
-                # self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])})")
-                self.logger.error(e)
+                yield disc
+            except Exception:
+                name = self.clean_name(product["title"])
+                url = product["url"]
+                self.logger.error(f"Error parsing disc: {name}({url})")
+
+        # When downloaded prdocuts is equal to limit, there are more products to download
+        if product_count == self.query_params["limit"]:
+            self.query_params["offset"] += self.query_params["limit"]
+            params = urlencode(self.query_params)
+            url = f"{self.base_url}/products?{params}"
+
+            yield scrapy.Request(url, headers=self.headers, callback=self.parse)       
 
     def clean_products(self, products) -> list:
-        self.logger.debug(f"Cleaning {len(products)} products")
-        products = [product for product in products if self.is_discgolf_product(product)]
+        products = [product for product in products if self.is_disc_product(product)]
 
         return products
+
+    def is_disc_product(self, product: dict) -> bool:
+        head_category: str = product["headcategory_name"]
+        is_accessory: bool = self.find_category(product["categories"], "tilbehør")
+        is_bag: bool = self.find_category(product["categories"], "bager og sekker")
+        is_set: bool = self.find_category(product["categories"], "discgolf sett")
+
+        return head_category.lower() == "discgolf" and not is_accessory and not is_bag and not is_set
+
+    def find_category(self, categories: list, target: str) -> bool:
+        for category_list in categories:
+            for category in category_list:
+                if category["category"].lower() == target:
+                    return True
+
+        return False
 
     def clean_name(self, name: str) -> str:
         unwanted_words = ["putter", "midrange", "driver", "distance", "fairway", "putt"]
@@ -110,22 +119,30 @@ class GolfkongenSpider(scrapy.Spider):
 
         return name.title()
 
-    def is_discgolf_product(self, product: dict) -> bool:
-        head_category: str = product["headcategory_name"].lower()
-        return True if head_category == "discgolf" else False
-
-    def find_brand(self, product: dict) -> str:
-        exclude = ["putter", "midrange", "driver"]
-        categories = [category_list for category_list in product["categories"] if category_list["category"].lower() == "discgolf"]
-        
-        pprint(categories)
-
-        
+    def find_brand(self, product: dict) -> str | None:
+        exclude = ["putter", "midrange", "driver", "tilbehør"]
+        categories = [category_list for category_list in product["categories"] if len(category_list) >= 2]
 
         for category_list in categories:
-        if len(category_list) > 2 and all(category['category'] != exclude for category in category_list):
-            return category_list
-    return None
+            self.logger.debug(f" Current list: {category_list}")
+
+            for i, category in enumerate(category_list):
+                category_name = category["category"].lower()
+                self.logger.debug(f"i: {i}, category: {category_name}")
+                next_category_name = category_list[i + 1]["category"].lower()
+
+                if category_name == "discgolf" and next_category_name not in exclude:
+                    self.logger.debug(f"Found brand: {next_category_name}")
+
+                    # Fix for latitude 64
+                    if next_category_name == "latitude64":
+                        next_category_name = "latitude 64"
+
+                    return next_category_name
+                else:
+                    break
+
+        return None
 
     def get_first_image(self, images: dict) -> str:
         if len(images) == 0 and "1" not in images:
