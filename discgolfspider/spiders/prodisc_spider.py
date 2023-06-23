@@ -14,7 +14,7 @@ class ProdiscSpider(scrapy.Spider):
         settings = kwargs["settings"]
         self.baseUrl = "https://prodiscnorge.myshopify.com/admin/api/2023-01"
         self.token = settings["PRODISC_API_KEY"]
-        
+
         if not self.token:
             self.logger.error("No token found for prodisc.no")
             return
@@ -37,7 +37,7 @@ class ProdiscSpider(scrapy.Spider):
         if len(products) == 0:
             self.logger.error("No products found for prodisc.no")
             return
-      
+
         # Remove unwanted products  
         products = self.clean_products(products)
 
@@ -53,12 +53,12 @@ class ProdiscSpider(scrapy.Spider):
             if next_link_match:
                 next_link = next_link_match.group(1)
                 yield scrapy.Request(next_link, headers=self.headers, callback=self.parse)
-    
+
     def parse_product_with_metafields(self, response, product):
         self.logger.debug(f"Product: {product['title']}")
-        
+
         try:
-            time.sleep(0.5) # Sleep to avoid rate limit
+            time.sleep(0.5)  # Sleep to avoid rate limit
 
             disc = CreateDiscItem()
             disc["name"] = product["title"]
@@ -102,18 +102,22 @@ class ProdiscSpider(scrapy.Spider):
     def get_price_from_variant(self, variant) -> float:
         return float(variant["price"])
 
-    def get_flight_spec(self, metafields) -> tuple:
+    def get_flight_spec(self, metafields: list[dict[str, int | str]]) -> tuple:
         speed = glide = turn = fade = None
+        valid_flight_spec_keys = ["speed", "glide", "turn", "fade"]
+        metafields = [metafield for metafield in metafields if metafield["key"] in valid_flight_spec_keys]
+
+        self.logger.debug(f"Metafields: {metafields}")
 
         for metafield in metafields:
             if metafield["key"] == "speed":
-                speed = float(metafield["value"])
+                speed = self.get_flight_spec_value(metafield)
             elif metafield["key"] == "glide":
-                glide = float(metafield["value"])
+                glide = self.get_flight_spec_value(metafield)
             elif metafield["key"] == "turn":
-                turn = float(metafield["value"])
+                turn = self.get_flight_spec_value(metafield)
             elif metafield["key"] == "fade":
-                fade = float(metafield["value"])
+                fade = self.get_flight_spec_value(metafield)
 
         # Raise exception if any of the flight spec values are missing
         has_none_values = all(value is None for value in (speed, glide, turn, fade))
@@ -123,4 +127,11 @@ class ProdiscSpider(scrapy.Spider):
             raise Exception(f"Missing flight spec values: (speed, glide, turn, fade) = {speed, glide, turn, fade}")
 
         return speed, glide, turn, fade
-    
+
+    def get_flight_spec_value(self, metafield: dict) -> float:
+        value = metafield["value"]
+
+        if type(value) == str:
+            value = value.replace(",", ".")
+
+        return float(value)
