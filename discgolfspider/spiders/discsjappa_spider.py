@@ -13,7 +13,7 @@ class DiscsjappaSpider(scrapy.Spider):
         super().__init__(name, **kwargs)
         settings = kwargs["settings"]
         self.token = settings["DISCSJAPPA_API_KEY"]
-        
+
         if not self.token:
             self.logger.error("No token found for discsjappa.no")
             return
@@ -36,7 +36,7 @@ class DiscsjappaSpider(scrapy.Spider):
         if len(products) == 0:
             self.logger.error("No products found for discsjappa.no")
             return
-      
+
         # Remove unwanted products  
         products = self.clean_products(products)
 
@@ -52,12 +52,13 @@ class DiscsjappaSpider(scrapy.Spider):
             if next_link_match:
                 next_link = next_link_match.group(1)
                 yield scrapy.Request(next_link, headers=self.headers, callback=self.parse)
-  
+
     def parse_product_with_metafields(self, response, product):
         self.logger.debug(f"Product: {product['title']}")
-        
+        metafields = response.json()["metafields"]
+
         try:
-            time.sleep(0.5) # Sleep to avoid rate limit
+            time.sleep(0.5)  # Sleep to avoid rate limit
 
             disc = CreateDiscItem()
             disc["name"] = product["title"]
@@ -66,17 +67,20 @@ class DiscsjappaSpider(scrapy.Spider):
             disc["retailer"] = "discsjappa.no"
             disc["url"] = self.create_product_url(product["handle"])
             disc["retailer_id"] = create_retailer_id(disc["brand"], disc["url"])
-            disc["image"] = product["image"]["src"]
+
+            if not product["image"]:
+                disc["image"] = "https://via.placeholder.com/300"
+            else:
+                disc["image"] = product["image"]["src"]
 
             variants = product["variants"]
             disc["in_stock"] = True if self.get_inventory_quantity(variants) > 0 else False
             disc["price"] = self.get_price_from_variant(variants[0])
-            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_spec(response.json()["metafields"])
+            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_spec(metafields)
 
             yield disc
         except Exception as e:
-            self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])})")
-            self.logger.error(e)
+            self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])}: {e})")
 
     def clean_products(self, products):
         self.logger.debug(f"Cleaning {len(products)} products")
@@ -107,14 +111,18 @@ class DiscsjappaSpider(scrapy.Spider):
     def get_flight_spec(self, metafields) -> tuple:
         speed = glide = turn = fade = None
 
+        if len(metafields) == 0:
+            self.logger.warning("No metafields found for disc")
+            return speed, glide, turn, fade
+
         for metafield in metafields:
-            if metafield["key"] == "first_number":    #speed
+            if metafield["key"] == "first_number":     # speed
                 speed = float(metafield["value"])
-            elif metafield["key"] == "second_number": #glide
+            elif metafield["key"] == "second_number":  # glide
                 glide = float(metafield["value"])
-            elif metafield["key"] == "third_number":  #turn
+            elif metafield["key"] == "third_number":   # turn
                 turn = float(metafield["value"])
-            elif metafield["key"] == "fourth_number": #fade
+            elif metafield["key"] == "fourth_number":  # fade
                 fade = float(metafield["value"])
 
         # Raise exception if any of the flight spec values are missing
@@ -122,6 +130,6 @@ class DiscsjappaSpider(scrapy.Spider):
         self.logger.debug(f"Has none values: {has_none_values}")
 
         if has_none_values:
-            raise Exception(f"Missing flight spec values: (speed, glide, turn, fade) = {speed, glide, turn, fade}")
+            self.logger.warning(f"Missing flight spec values: (speed, glide, turn, fade) = {speed, glide, turn, fade}")
 
         return speed, glide, turn, fade
