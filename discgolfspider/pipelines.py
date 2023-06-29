@@ -183,26 +183,25 @@ class DiscItemFlightSpecPipeline:
 
     def process_item(self, item: CreateDiscItem, spider: Spider):
         self.spider = spider
-        
+
         if not self.enabled:
             spider.logger.debug("Flight spec pipeline is not enabled.")
             return item
 
-        spider.logger.debug(f"Find suggestion")
-
         disc_item: CreateDiscItem = item
-            
+
         # If disc item already has specs return
         if disc_item.has_flight_specs():
             return disc_item
+
+        spider.logger.debug(f"Look for flight spec for {disc_item}")
 
         # Get discs with same name and has values for flight specs
         query = {"disc_name": disc_item["name"]}
         discs = self.api.search_disc(query)
 
         spider.logger.debug(f"Before filter: {discs=}")
-        
-        
+
         discs = list(filter(self.check_disc, discs))
         spider.logger.debug(f" ## Discs with same name: {len(discs)}")
 
@@ -221,7 +220,7 @@ class DiscItemFlightSpecPipeline:
         disc_item["fade"]  = flight_spec_suggestion["fade"]
 
         return disc_item
-    
+
 
     def check_disc(self, disc: DiscItem) -> bool:
         has_flight_spec = disc.has_flight_specs()
