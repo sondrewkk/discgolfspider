@@ -4,9 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
-# useful for handling different item types with a single interface
-from itemadapter import is_item, ItemAdapter
+from pyfiglet import figlet_format
 
 
 class DiscgolfspiderSpiderMiddleware:
@@ -100,4 +98,5 @@ class DiscgolfspiderDownloaderMiddleware:
         pass
 
     def spider_opened(self, spider):
-        spider.logger.info(f"Starting spider: {spider.name}")
+        ascii_name = figlet_format(spider.name)
+        spider.logger.info(f"\n{ascii_name}")
