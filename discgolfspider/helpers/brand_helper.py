@@ -28,6 +28,7 @@ class BrandHelper:
         "Lone Star",
         "Løft",
         "Millennium Discs",
+        "Mint Discs",
         "Momentum Disc Golf",
         "MVP",
         "Prodigy",
