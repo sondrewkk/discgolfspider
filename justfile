@@ -4,7 +4,8 @@ alias cl := clean-log
 
 dev:
     @echo "Setting up development environment..."
-    @poetry shell
+    touch {{log-file}} 
+    @echo "Remeber to start the api. Go to  discisntock_api and run just dev, as well.
 
 clean-log:
     @echo "Cleaning up and recreating log file..."
