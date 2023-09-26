@@ -20,15 +20,13 @@ class DiscshopenSpider(scrapy.Spider):
         self.http_user = settings["DISCSHOPEN_API_KEY"]
         self.http_pass = settings["DISCSHOPEN_API_SECRET"]
 
-
     @classmethod
     def from_crawler(cls, crawler):
         return cls(settings=crawler.settings)
 
-
     def parse(self, response):
         products = self.unique_dicts(response.json(), "id")
-        disc_products = [product for product in products if self.is_disc(product) and not self.is_draft(product["status"])]
+        disc_products = [product for product in products if self.is_valid_product(product)]
 
         for disc_product in disc_products:
             try:
@@ -43,11 +41,11 @@ class DiscshopenSpider(scrapy.Spider):
 
                 in_stock = True if disc_product["stock_status"] == "instock" else False
                 disc["in_stock"] = in_stock
-                
+
                 url = disc_product["permalink"]
                 disc["url"] = url
                 disc["spider_name"] = self.name
-                
+
                 brand = self.get_brand_from_tags(disc_product["tags"])
                 disc["brand"] = brand
                 disc["retailer"] = self.allowed_domains[0]
@@ -67,7 +65,7 @@ class DiscshopenSpider(scrapy.Spider):
                 price: int = -9999
                 if disc_product["price"]:
                     price = int(disc_product["price"])
-                
+
                 disc["price"] = price
 
                 yield disc
@@ -86,17 +84,18 @@ class DiscshopenSpider(scrapy.Spider):
             yield Request(next_page, callback=self.parse)
 
     def unique_dicts(self, dict_list, key):
-        return [{k: v for k, v in item.items()} for item in dict_list if item[key] not in [i[key] for i in dict_list if i != item]]
+        seen = set()
+        return [seen.add(d[key]) or d for d in dict_list if d[key] not in seen]
 
     def is_disc(self, product: dict) -> bool:
         valid_categories = ["distance-driver", "driver", "driver-discer", "fairway-driver", "midrange", "putter"]
-        categories = product["categories"]
+        categories = product["categories"] + product["tags"]
         return any(category in (category["slug"] for category in categories) for category in valid_categories)
-    
+
     def is_draft(self, status: str) -> bool:
         return status == "draft"
 
-    def get_next_page(self, headers: Headers) -> str:
+    def get_next_page(self, headers: Headers) -> Optional[str]:
         link_header: str = headers.get("Link").decode("utf-8")
         next_page: str = None
 
@@ -111,18 +110,17 @@ class DiscshopenSpider(scrapy.Spider):
             # If link header is of type next
             if rel.find("next") != -1:
                 next_page = link.split(";")[0].replace("<", "").replace(">", "").strip()
-        
+
         return next_page
 
-    
     def get_brand_from_tags(self, tags: list) -> Optional[str]:
         for tag in tags:
             name = tag["name"]
             self.logger.debug(f"Checking tag: {name}")
-                
+
             brand = BrandHelper.normalize(name)
             self.logger.debug(f"Brand: {brand}")
-            
+
             if brand is not None:
                 return brand
 
@@ -130,11 +128,11 @@ class DiscshopenSpider(scrapy.Spider):
 
     def get_flight_spec_from_meta_data(self, meta_data: list) -> list[float]:
         flight_specs_values = {"speed": 0.0, "glide": 0.0, "turn": 0.0, "fade": 0.0}
-        
+
         for meta in meta_data:
             key = meta["key"].lower()
 
-            if key in flight_specs_values:        
+            if key in flight_specs_values:
                 value = meta["value"]
                 if not value:
                     raise ValueError(f"Flight spec ({key}). Value is empty")
@@ -146,3 +144,6 @@ class DiscshopenSpider(scrapy.Spider):
                     raise ValueError(f"Could not parse flight spec ({key}). Value: {value}")
 
         return list(flight_specs_values.values())
+
+    def is_valid_product(self, product: dict) -> bool:
+        return self.is_disc(product) and not self.is_draft(product["status"])
