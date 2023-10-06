@@ -186,5 +186,13 @@ if KASTMEG_API_KEY_FILE:
     with open(KASTMEG_API_KEY_FILE, "r") as file:
         KASTMEG_API_KEY = file.read()
 
+# Discsor auth
+DISCSOR_API_KEY = os.getenv("DISCSOR_API_KEY")
+
+DISCSOR_API_KEY_FILE = os.getenv("DISCSOR_API_KEY_FILE")
+if DISCSOR_API_KEY_FILE:
+    with open(DISCSOR_API_KEY_FILE, "r") as file:
+        DISCSOR_API_KEY = file.read()
+
 # Pipeline flags
 ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE = os.getenv("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE") == "True"

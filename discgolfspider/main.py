@@ -17,6 +17,7 @@ from discgolfspider.spiders.sendeskive_spider import SendeskiveSpider
 from discgolfspider.spiders.discgolf_wheelie_spider import DiscgolfWheelieSpider
 from discgolfspider.spiders.golfkongen_spider import GolfkongenSpider
 from discgolfspider.spiders.kastmeg_spider import KastmegSpider
+from discgolfspider.spiders.discsor_spider import DiscsorSpider
 
 
 settings = get_project_settings()
@@ -28,12 +29,12 @@ runner = CrawlerRunner(settings)
 @defer.inlineCallbacks
 def crawl():
     try:
-        yield runner.crawl(WeAreDiscgolfSpider)                 
-        yield runner.crawl(AceshopSpider)              
+        yield runner.crawl(WeAreDiscgolfSpider)
+        yield runner.crawl(AceshopSpider)
         yield runner.crawl(GolfdiscerSpider)
         yield runner.crawl(FrisbeebutikkenSpider)
         yield runner.crawl(FrisbeesorSpider)
-        yield runner.crawl(DiscgolfdynastySpider)      
+        yield runner.crawl(DiscgolfdynastySpider)
         yield runner.crawl(DiscoverdiscsSpider)
         yield runner.crawl(ProdiscSpider)
         yield runner.crawl(DiscshopenSpider)
@@ -42,6 +43,7 @@ def crawl():
         yield runner.crawl(DiscgolfWheelieSpider)
         yield runner.crawl(GolfkongenSpider)
         yield runner.crawl(KastmegSpider)
+        yield runner.crawl(DiscsorSpider)
     except Exception as e:
         logger.error(f"Error in crawl: {e}")
 
@@ -59,7 +61,7 @@ def cb_loop_error(failure):
 
 
 def start():
-    logger.info(f"Crawl process is starting.")
+    logger.info("Crawl process is starting.")
 
     loop = task.LoopingCall(crawl)
     interval = settings["CRAWL_INTERVAL"]
@@ -69,6 +71,7 @@ def start():
     loopDeferred.addErrback(cb_loop_error)
 
     reactor.run()  # Blocks until last crawl is finished
+
 
 if __name__ == "__main__":
     start()
