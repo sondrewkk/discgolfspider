@@ -1,5 +1,5 @@
-from ..items import CreateDiscItem
-from ..helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
+from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -26,12 +26,7 @@ class FrisbeesorSpider(scrapy.Spider):
                 )
 
     def parse_products(self, response, brand):
-        
-        non_valid_categories = ["product_cat-kurver", "product_cat-tilbehor", "product_cat-sekker"]
-        products = response.css(".product")
-
-        # Remove products that has a category tha is not valid, represented by non_valid_categories array
-        products = [p for p in products if not [True for c in non_valid_categories if c in p.attrib['class']]]
+        products = self.clean_products(response.css(".product"))
 
         for product in products:
             disc = CreateDiscItem()
@@ -59,9 +54,31 @@ class FrisbeesorSpider(scrapy.Spider):
             else:
                 disc["price"] = None
 
+            if "pakke" in disc["name"].lower():
+                continue
+
             yield disc
 
         next_page = response.css('a.next::attr(href)').get()
 
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
+
+    def clean_products(self, products: list) -> list:
+        """Removes products that has a category that is not valid, represented by non_valid_categories array
+
+        Args:
+            products (list): List of products
+
+        Returns:
+            list: List of products that has a valid category
+        """
+        non_valid_categories = [
+            "product_cat-kurver",
+            "product_cat-tilbehor",
+            "product_cat-sekker",
+            "product_cat-startersett",
+            "product_cat-klaer",
+        ]
+
+        return [p for p in products if not [True for c in non_valid_categories if c in p.attrib['class']]]
