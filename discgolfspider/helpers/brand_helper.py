@@ -6,6 +6,7 @@ class BrandHelper:
     brands = [
         "Alfa Discs",
         "Axiom",
+        "Birdie Disc Golf Supply",
         "Clash Discs",
         "DGA",
         "Dino Discs",
@@ -17,6 +18,7 @@ class BrandHelper:
         "Dynamic Discs",
         "Elevation",
         "EV-7",
+        "Finish Line",
         "Gateway Discs",
         "Guru",
         "Innova",
@@ -31,6 +33,7 @@ class BrandHelper:
         "Mint Discs",
         "Momentum Disc Golf",
         "MVP",
+        "Northstar",
         "Prodigy",
         "Prodiscus",
         "RPM Discs",
