@@ -1,24 +1,22 @@
-from urllib.parse import parse_qs, urlparse
-from ..items import CreateDiscItem
-from ..helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
+from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
+
 
 class FrisbeebutikkenSpider(scrapy.Spider):
     name = "frisbeebutikken"
     allowed_domains = ["frisbeebutikken.no"]
     start_urls = ["https://frisbeebutikken.no/categories/golfdisker/sort-by/1/?page=1"]
 
-
     def parse(self, response):
         for product in response.css(".product-box"):
-            
             disc = CreateDiscItem()
-            
-            try: 
+
+            try:
                 disc["name"] = product.css(".title::text").get()
                 disc["image"] = product.css(".image img::attr(src)").get()
-                
+
                 brand = product.css(".manufacturer-box img::attr(alt)").get()
                 url = product.css(".product_box_title_row a::attr(href)").get()
                 disc["url"] = url
@@ -27,12 +25,7 @@ class FrisbeebutikkenSpider(scrapy.Spider):
                 disc["retailer"] = "frisbeebutikken.no"
                 disc["retailer_id"] = create_retailer_id(brand, url)
                 disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
-                disc["speed"] = None
-                disc["glide"] = None
-                disc["turn"] = None
-                disc["fade"] = None
-
-                disc["price"] = None
+                disc["speed"] = disc["glide"] = disc["turn"] = disc["fade"] = None
 
                 price = -9999
                 sale_price: str = product.css(".has-special-price > span::text").get()
@@ -55,7 +48,9 @@ class FrisbeebutikkenSpider(scrapy.Spider):
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
 
-    
-    def price_to_int(self, price) -> int:
-        price_number = price.strip().split(",")[0]
-        return int(price_number)
+    def price_to_int(self, price: str) -> int:
+        try:
+            price_number = price.strip().split(",")[0]
+            return int(price_number)
+        except Exception as e:
+            raise ValueError(f"Could not parse price: {e}")
