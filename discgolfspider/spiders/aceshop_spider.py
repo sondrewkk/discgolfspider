@@ -1,5 +1,5 @@
-from ..items import CreateDiscItem
-from ..helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
+from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
 
@@ -11,41 +11,52 @@ class AceshopSpider(scrapy.Spider):
 
     def parse(self, response):
         for product in response.css(".product-box-wrapper"):
-            disc = CreateDiscItem()
-            disc["name"] = product.css(".product_box_title_row a::text").get()
-            disc["image"] = product.css(".image img::attr(src)").get()
+            try:
+                disc = CreateDiscItem()
+                disc["name"] = product.css(".product_box_title_row a::text").get()
+                disc["image"] = product.css(".image img::attr(src)").get()
 
-            brand = product.css(".product::attr(data-manufacturer)").get().strip().title()
-            self.logger.debug(f"Found brand { brand }")
-            url = product.css(".product_box_title_row a::attr(href)").get()
-            disc["url"] = url
-            disc["spider_name"] = self.name
-            disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
-            disc["retailer"] = self.allowed_domains[0]
-            disc["retailer_id"] = create_retailer_id(brand, url)
-            disc["brand"] = brand
-            
-            price = int(product.css(".product-box::attr(data-price-including-tax)").get())
-            if price:
-                disc["price"] = price / 100
+                url = product.css(".product_box_title_row a::attr(href)").get()
+                disc["url"] = url
+                disc["spider_name"] = self.name
+                disc["in_stock"] = int(product.css(".product::attr(data-quantity)").get()) > 0
+                disc["retailer"] = self.allowed_domains[0]
 
-            flight_specs = product.css(".product_box_tag span::text").getall()
+                brand = product.css(".product::attr(data-manufacturer)").get().strip().title()
+                if not brand:
+                    raise ValueError(f"Could not find brand for disc: {disc}")
+                elif brand.lower() == "dgputt":
+                    self.logger.debug(f"Skipping disc from brand {brand}")
+                    continue
 
-            if len(flight_specs) == 4:
-                flight_specs = [
-                    float(numeric_string.replace(",", ".")) for numeric_string in flight_specs
-                ]
-                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
-            else:
-                self.logger.warning(f"Did not find flight spec for disc with name { disc['name'] }")
-                disc["speed"] = None
-                disc["glide"] = None
-                disc["turn"] = None
-                disc["fade"] = None
+                disc["retailer_id"] = create_retailer_id(brand, url)
+                disc["brand"] = brand
 
-            yield disc
+                price = int(product.css(".product-box::attr(data-price-including-tax)").get())
+                if price:
+                    disc["price"] = price / 100
+
+                flight_specs = self.parse_flight_specs(product.css(".product_box_tag span::text").getall())
+
+                if any(spec is None for spec in flight_specs):
+                    self.logger.warning(f"Could not parse flight specs for {disc}")
+                else:
+                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+
+                yield disc
+            except Exception as e:
+                self.logger.error(f"Error parsing disc: {e}")
 
         next_page = response.css(".paginator_link_next::attr(href)").get()
 
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
+
+    def parse_flight_specs(self, flight_specs):
+        speed = glide = turn = fade = None
+
+        if len(flight_specs) == 4:
+            flight_specs = [float(numeric_string.replace(".", "").replace(",", ".")) for numeric_string in flight_specs]
+            speed, glide, turn, fade = flight_specs
+
+        return speed, glide, turn, fade
