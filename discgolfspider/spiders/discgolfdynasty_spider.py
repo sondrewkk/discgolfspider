@@ -30,18 +30,17 @@ class DiscgolfdynastySpider(scrapy.Spider):
         products = response.css(".product-thumbnail")
 
         if len(products) == 0:
-            self.logger.info(f"No products found for brand {brand}")
+            self.logger.debug(f"No products found for brand {brand}")
             return
 
         for product in products:
+            disc = CreateDiscItem()
             try:
-                disc = CreateDiscItem()
-
                 brand = brand.replace("-", " ")
                 disc["brand"] = brand
 
-                name = product.css(".product-thumbnail__title::text").get().replace("\n", "").strip().replace(brand + " ", "")
-                disc["name"] = self.remove_brand_from_name(name, brand)
+                name = product.css(".product-thumbnail__title::text").get()
+                disc["name"] = self.format_disc_name(name, brand)
 
                 url = product.css("a").attrib["href"]
                 url = f"{self.start_urls[0]}{url}"
@@ -67,9 +66,7 @@ class DiscgolfdynastySpider(scrapy.Spider):
                     cb_kwargs={"disc": disc},
                 )
             except Exception as e:
-                name = product.css(".product-thumbnail__title::text").get().replace("\n", "").strip()
-                url = product.css("a").attrib["href"]
-                self.logger.error(f"Error parsing disc: {name}({url}): {e}")
+                self.logger.error(f"Error parsing disc: {disc}): {e}")
 
         # Check if there is a next page and fowllow it if there is one
         next_page = response.css("a.pagination__next-button::attr(\"href\")").get()
@@ -81,20 +78,11 @@ class DiscgolfdynastySpider(scrapy.Spider):
                 cb_kwargs={"brand": brand}
             )
 
-    def parse_disc_details(self, response, disc: CreateDiscItem):
-        try:
-            flight_numbers = {"speed": None, "glide": None, "turn": None, "fade": None}
-            flight_number_values = response.css(".product__description > ul > li::text").getall()
+    def format_disc_name(self, name: str, brand: str) -> str:
+        formatted = name.replace("\n", "").strip().replace(brand + " ", "")
+        formatted = self.remove_brand_from_name(formatted, brand)
 
-            if not flight_number_values:
-                self.logger.warning(f"Could not find flight numbers for {disc['name']}({disc['url']})")
-            else:
-                for flight_number in flight_numbers:
-                    disc[flight_number] = self.get_flight_number(flight_number, flight_number_values)
-
-            yield disc
-        except Exception as e:
-            self.logger.error(f"Error parsing flight numbers for {disc['name']}({disc['url']}): {e}")
+        return formatted
 
     def remove_brand_from_name(self, name: str, brand: str) -> str:
         exclude = set(['discs'])
@@ -107,13 +95,29 @@ class DiscgolfdynastySpider(scrapy.Spider):
 
         return ' '.join(result_parts)
 
-    def get_flight_number(self, property: str, flight_numbers: list[str]) -> None | float:
-        flight_number_value = [flight_number for flight_number in flight_numbers if property in flight_number.lower()]
+    def parse_disc_details(self, response, disc: CreateDiscItem):
+        try:
+            flight_specs = {"speed": None, "glide": None, "turn": None, "fade": None}
+            product_description = response.css(".product__description")
+            product_description_values = product_description.css("li::text").getall()
 
-        if not flight_number_value:
-            self.logger.warning(f"Could not find flight number for {property}")
-            return None
+            if product_description_values:
+                for description in product_description_values:
+                    if ": " in description:
+                        key, value = description.split(": ", 1)
+                        key = key.lower()
+                        if key in flight_specs.keys():
+                            flight_specs[key] = float(value.split(" ")[0])
 
-        flight_number = flight_number_value[0].split(":")[1].strip()
+                missing_spec = any(value is None for value in flight_specs.values())
+                if missing_spec:
+                    self.logger.warning(f"Could not find flight numbers for {disc}: {flight_specs}")
+                else:
+                    disc["speed"] = flight_specs["speed"]
+                    disc["glide"] = flight_specs["glide"]
+                    disc["turn"] = flight_specs["turn"]
+                    disc["fade"] = flight_specs["fade"]
 
-        return float(flight_number)
+            yield disc
+        except Exception as e:
+            self.logger.error(f"Error parsing flight numbers for {disc}): {e}")
