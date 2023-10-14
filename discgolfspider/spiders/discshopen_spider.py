@@ -73,8 +73,6 @@ class DiscshopenSpider(scrapy.Spider):
                 msg = f"Error parsing disc: {disc_product['name']}({disc_product['permalink']}). Reason: {e}"
                 if disc_product["stock_status"] == "instock":
                     self.logger.error(msg)
-                else:
-                    self.logger.warning(msg)
 
         # Check for next page
         headers: Headers = response.headers
