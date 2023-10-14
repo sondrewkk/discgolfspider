@@ -15,7 +15,7 @@ class SendeskiveSpider(scrapy.Spider):
         self.api_base_url = "https://sendeplate-no.myshopify.com/admin/api/2023-01"
         self.shop_base_url = "https://sendeskive.no"
         self.token = settings["SENDESKIVE_API_KEY"]
-        
+
         if not self.token:
             self.logger.error("No token found for sendeskive.no")
             return
@@ -40,15 +40,20 @@ class SendeskiveSpider(scrapy.Spider):
         if len(products) == 0:
             self.logger.error("No products found for discsjappa.no")
             return
-      
-        # Remove unwanted products  
+
+        # Remove unwanted products
         products = self.clean_products(products)
 
         for product in products:
             brand = product['vendor']
             if brand != "Discsjappa":
-                url = f"{self.api_base_url}/products/{product['id']}/metafields.json"        
-                yield scrapy.Request(url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs=dict(product=product))
+                url = f"{self.api_base_url}/products/{product['id']}/metafields.json"
+                yield scrapy.Request(
+                    url,
+                    headers=self.headers,
+                    callback=self.parse_product_with_metafields,
+                    cb_kwargs=dict(product=product),
+                )
 
         # Check if response containt next link header and foilow it if it does
         if "link" in response.headers:
@@ -58,20 +63,19 @@ class SendeskiveSpider(scrapy.Spider):
             if next_link_match:
                 next_link = next_link_match.group(1)
                 yield scrapy.Request(next_link, headers=self.headers, callback=self.parse)
-  
+
     def parse_product_with_metafields(self, response, product):
         self.logger.debug(f"Product: {product['title']}")
-        time.sleep(0.5) # Shopify API rate limit is 2 requests per second
+        time.sleep(0.5)  # Shopify API rate limit is 2 requests per second
 
         metafields = response.json()["metafields"]
-
+        disc = CreateDiscItem()
         try:
-            disc = CreateDiscItem()
             disc["name"] = product["title"]
+            disc["url"] = self.create_product_url(product["handle"])
             disc["spider_name"] = self.name
             disc["brand"] = self.get_brand(metafields)
             disc["retailer"] = "sendeskive.no"
-            disc["url"] = self.create_product_url(product["handle"])
             disc["retailer_id"] = create_retailer_id(disc["brand"], disc["url"])
             disc["image"] = product["image"]["src"]
 
@@ -82,11 +86,9 @@ class SendeskiveSpider(scrapy.Spider):
 
             yield disc
         except Exception as e:
-            self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])}), reason: {e}")
+            self.logger.error(f"Error parsing disc: {disc}), reason: {e}")
 
     def clean_products(self, products):
-        self.logger.debug(f"Cleaning {len(products)} products")
-
         # Remove products with no variants
         products = [product for product in products if len(product["variants"]) > 0]
 
@@ -96,7 +98,8 @@ class SendeskiveSpider(scrapy.Spider):
         # Remove products that has -sett in the name
         products = [product for product in products if "-sett" not in product["title"].lower()]
 
-        self.logger.debug(f"Cleaned products: {len(products)}")
+        # Remove products that has gavekort in the tags
+        products = [product for product in products if "gavekort" not in product["tags"].lower()]
 
         return products
 
