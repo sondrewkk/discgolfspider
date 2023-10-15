@@ -39,7 +39,11 @@ class DiscgolfWheelieSpider(scrapy.Spider):
                 self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])}). Reason: {e}")
 
     def clean_products(self, products: list) -> list:
-        return [product for product in products if product["Title"].lower().find("start sett") < 0]
+        return [
+            product for product in products 
+            if product["Title"].lower().find("start sett") < 0
+            and product["CategoryTitle"] != "TILBEHØR"
+        ]
 
     def next_page_url(self, url):
         parsed_url = urlparse(url)
