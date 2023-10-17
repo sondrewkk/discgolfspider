@@ -57,15 +57,15 @@ class GolfkongenSpider(scrapy.Spider):
 
         # Parse products
         for product in products:
+            disc = CreateDiscItem()
+
             try:
-                disc = CreateDiscItem()
+                brand = self.find_brand(product)
+                disc["brand"] = brand
                 disc["name"] = self.clean_name(product["title"])
                 disc["spider_name"] = self.name
                 disc["retailer"] = "golfkongen.no"
-
-                brand = self.find_brand(product)
-                disc["brand"] = brand
-
+                
                 url = product["url"]
                 disc["url"] = url
                 disc["retailer_id"] = create_retailer_id(disc["brand"], url)
@@ -75,10 +75,8 @@ class GolfkongenSpider(scrapy.Spider):
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_specs(product["description"])
 
                 yield disc
-            except Exception:
-                name = self.clean_name(product["title"])
-                url = product["url"]
-                self.logger.error(f"Error parsing disc: {name}({url})")
+            except Exception as e:
+                self.logger.error(f"Error parsing disc: {disc}, reason: {e}")
 
         # When downloaded prdocuts is equal to limit, there are more products to download
         if product_count == self.query_params["limit"]:
@@ -137,6 +135,9 @@ class GolfkongenSpider(scrapy.Spider):
                     # Fix for latitude 64
                     if next_category_name == "latitude64":
                         next_category_name = "latitude 64"
+                    elif next_category_name == "mvp/axiom":
+                        disc_name = product["title"].lower()
+                        next_category_name = "mvp" if "mvp" in disc_name else "axiom"
 
                     return next_category_name
                 else:
