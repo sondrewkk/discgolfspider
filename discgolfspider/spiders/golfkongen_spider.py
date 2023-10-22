@@ -2,8 +2,9 @@ from discgolfspider.items import CreateDiscItem
 from discgolfspider.helpers.retailer_id import create_retailer_id
 from base64 import b64encode
 from urllib.parse import urlencode
-from typing import Tuple
+from typing import List
 
+import re
 import scrapy
 
 
@@ -65,13 +66,13 @@ class GolfkongenSpider(scrapy.Spider):
                 disc["name"] = self.clean_name(product["title"])
                 disc["spider_name"] = self.name
                 disc["retailer"] = "golfkongen.no"
-                
+
                 url = product["url"]
                 disc["url"] = url
                 disc["retailer_id"] = create_retailer_id(disc["brand"], url)
                 disc["image"] = self.get_first_image(product["images"])
                 disc["in_stock"] = self.is_product_in_stock(product)
-                disc["price"] = int(product["price"])
+                disc["price"] = int(product["price"].split(".")[0])
                 disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_specs(product["description"])
 
                 yield disc
@@ -84,7 +85,7 @@ class GolfkongenSpider(scrapy.Spider):
             params = urlencode(self.query_params)
             url = f"{self.base_url}/products?{params}"
 
-            yield scrapy.Request(url, headers=self.headers, callback=self.parse)       
+            yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def clean_products(self, products) -> list:
         products = [product for product in products if self.is_disc_product(product)]
@@ -160,12 +161,21 @@ class GolfkongenSpider(scrapy.Spider):
 
         return quantity > 0
 
-    def get_flight_specs(self, description: str) -> Tuple[float, float, float, float]:
-        flight_spec_names = ["speed", "glide", "turn", "fade"]
-        description = description.lower()
-        flight_specs = {key: self.get_flight_spec(key, description) for key in flight_spec_names}
+    def get_flight_specs(self, description: str) -> List[float]:
+        output_dict = {'Speed': None, 'Glide': None, 'Turn': None, 'Fade': None}
 
-        return tuple(flight_specs.values())
+        # Look for each rating in the text using regular expressions
+        for key in output_dict.keys():
+            # Find number with optional sign and optional comma value
+            match = re.search(rf"{key}:\s*([-+]?(?:\d*\,*\d+))", description)
+            if match:
+                try:
+                    value = float(match.group(1).replace(",", "."))
+                    output_dict[key] = value
+                except ValueError:
+                    output_dict[key] = None
+
+        return list(output_dict.values())
 
     def get_flight_spec(self, spec: str, description: str) -> float:
         spec = spec.lower() + ":"
