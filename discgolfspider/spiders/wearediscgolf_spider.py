@@ -15,8 +15,8 @@ class WeAreDiscgolfSpider(scrapy.Spider):
     def __init__(self, name=None, **kwargs):
         super().__init__(name, **kwargs)
         settings = kwargs["settings"]
-        self.http_user = settings["GURU_API_KEY"]
-        self.http_pass = settings["GURU_API_SECRET"]
+        self.http_user = settings["WEAREDISCGOLF_API_KEY"]
+        self.http_pass = settings["WEAREDISCGOLF_API_SECRET"]
 
     @classmethod
     def from_crawler(cls, crawler):
