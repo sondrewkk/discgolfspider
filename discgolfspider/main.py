@@ -5,14 +5,12 @@ from scrapy.crawler import CrawlerRunner
 
 from discgolfspider.spiders.wearediscgolf_spider import WeAreDiscgolfSpider
 from discgolfspider.spiders.aceshop_spider import AceshopSpider
-from discgolfspider.spiders.golfdiscer_spider import GolfdiscerSpider
 from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
 from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
 from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 from discgolfspider.spiders.discoverdiscs_spider import DiscoverdiscsSpider
 from discgolfspider.spiders.prodisc_spider import ProdiscSpider
 from discgolfspider.spiders.discshopen_spider import DiscshopenSpider
-from discgolfspider.spiders.discsjappa_spider import DiscsjappaSpider
 from discgolfspider.spiders.sendeskive_spider import SendeskiveSpider
 from discgolfspider.spiders.discgolf_wheelie_spider import DiscgolfWheelieSpider
 from discgolfspider.spiders.golfkongen_spider import GolfkongenSpider
@@ -31,14 +29,12 @@ def crawl():
     try:
         yield runner.crawl(WeAreDiscgolfSpider)
         yield runner.crawl(AceshopSpider)
-        yield runner.crawl(GolfdiscerSpider)
         yield runner.crawl(FrisbeebutikkenSpider)
         yield runner.crawl(FrisbeesorSpider)
         yield runner.crawl(DiscgolfdynastySpider)
         yield runner.crawl(DiscoverdiscsSpider)
         yield runner.crawl(ProdiscSpider)
         yield runner.crawl(DiscshopenSpider)
-        yield runner.crawl(DiscsjappaSpider)
         yield runner.crawl(SendeskiveSpider)
         yield runner.crawl(DiscgolfWheelieSpider)
         yield runner.crawl(GolfkongenSpider)
