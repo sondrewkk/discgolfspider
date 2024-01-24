@@ -54,11 +54,11 @@ class DgshopSpider(scrapy.Spider):
                     disc["speed"], disc["glide"], disc["turn"], disc["fade"] = [None, None, None, None]
                 else:
                     disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+                
+                yield disc
             except Exception as e:
                 self.logger.error(f"Error parsing disc: {disc['name']}({disc['url']}). Reason: {e}")
             
-            yield disc
-
         next_page = response.css("li.pages-item-next a::attr(href)").get()
 
         if next_page is not None:
