@@ -1,87 +1,113 @@
-import scrapy
-from urllib.parse import urlparse, parse_qs
-from discgolfspider.helpers.retailer_id import create_retailer_id
+import re
+import time
 
+import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
 
 class DiscgolfWheelieSpider(scrapy.Spider):
     name = "discgolf_wheelie"
-    allowed_domains = ["discgolf-wheelie.no"]
-    start_urls = ["https://discgolf-wheelie.no/json/products?currencyIso=NOK&field=categoryId&filter=%7B%7D&filterGenerate=true&id=3&limit=0&orderBy=Sorting,-Sold&page=1"]
-    parsed_products = 0
+    url = "discgolf-wheelie.no"
+
+    def __init__(self, name=None, **kwargs):
+        super().__init__(name, **kwargs)
+        settings = kwargs["settings"]
+        self.baseUrl = "https://45ed2d.myshopify.com/admin/api/2024-01"
+        self.token = settings["DISCGOLFWHEELIE_API_KEY"]
+
+        if not self.token:
+            self.logger.error(f"No token found for {self.url}")
+            return
+
+        self.headers = {"X-Shopify-Access-Token": self.token}
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(settings=crawler.settings)
+
+    def start_requests(self):
+        url = f"{self.baseUrl}/products.json?status=active&product_type=Disk&limit=100"
+        yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
         products = response.json()["products"]
+
+        if len(products) == 0:
+            self.logger.error("No products found for ")
+            return
+
+        # Remove unwanted products
         products = self.clean_products(products)
 
         for product in products:
+            self.logger.debug(f"Product: {product['title']}")
+
             try:
+                time.sleep(0.5)  # Sleep to avoid rate limit
+
                 disc = CreateDiscItem()
-                disc["name"] = product["Title"].title()
+                disc["name"] = product["title"]
                 disc["spider_name"] = self.name
+                disc["brand"] = product["vendor"]
+                disc["retailer"] = self.url
+                disc["url"] = self.create_product_url(product["handle"])
+                disc["retailer_id"] = create_retailer_id(disc["brand"], disc["url"])
 
-                brand = product["ProducerTitle"]
-                disc["brand"] = brand
-                disc["retailer"] = self.allowed_domains[0]
+                image = product["image"]
+                disc["image"] = image["src"] if image else "https://via.placeholder.com/300"
 
-                url = self.create_product_url(product["Handle"])
-                disc["url"] = url
-                disc["retailer_id"] = create_retailer_id(brand, url)
-                disc["image"] = self.create_image_url(product["Images"][0])
+                variants = product["variants"]
+                disc["in_stock"] = True if self.get_inventory_quantity(variants) > 0 else False
+                disc["price"] = self.get_price_from_variant(variants[0])
 
-                disc["in_stock"] = True if not product["Soldout"] else False
-                disc["price"] = product["Prices"][0]["FullPriceMax"]
-                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_spec(product["DescriptionList"])
+                disc["speed"] = self.get_flight_spec_from_tag("Speed", product["tags"])
+                disc["glide"] = self.get_flight_spec_from_tag("Glide", product["tags"])
+                disc["turn"] = self.get_flight_spec_from_tag("Turn", product["tags"])
+                disc["fade"] = self.get_flight_spec_from_tag("Fade", product["tags"])
+
+                if any([disc["speed"], disc["glide"], disc["turn"], disc["fade"]]) is None:
+                    raise ValueError(
+                        f"Missing flight spec values: {disc['speed']}, {disc['glide']}, {disc['turn']}, {disc['fade']}"
+                    )
 
                 yield disc
             except Exception as e:
-                self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])}). Reason: {e}")
+                self.logger.error(
+                    f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])})"
+                )
+                self.logger.error(e)
 
-    def clean_products(self, products: list) -> list:
-        return [
-            product for product in products 
-            if product["Title"].lower().find("start sett") < 0
-            and product["CategoryTitle"] != "TILBEHØR"
-        ]
+        # Check if response containt next link header and follow it if it does
+        if "link" in response.headers:
+            links = response.headers["link"].decode("utf-8")
+            next_link_match = re.search('<([^>]+)>; rel="next"', links)
 
-    def next_page_url(self, url):
-        parsed_url = urlparse(url)
-        query = parse_qs(parsed_url.query)
+            if next_link_match:
+                next_link = next_link_match.group(1)
+                yield scrapy.Request(next_link, headers=self.headers, callback=self.parse)
 
-        page = int(query["page"][0])
-        next_page_url = parsed_url._replace(query=f"currencyIso=NOK&field=categoryId&filter=%7B%7D&filterGenerate=true&id=3&limit=24&orderBy=Sorting,-Sold&page={page + 1}").geturl()
+    def clean_products(self, products):
+        self.logger.debug(f"Cleaning {len(products)} products")
 
-        return next_page_url
+        # Remove products with no variants
+        products = [product for product in products if len(product["variants"]) > 0]
+
+        self.logger.debug(f"Cleaned products: {len(products)}")
+
+        return products
 
     def create_product_url(self, product_handle: str):
-        return f"https://discgolf-wheelie.no{product_handle}"
+        return f"https://{self.url}/products/{product_handle}"
 
-    def create_image_url(self, image_url: str):
-        if not image_url:
-            raise ValueError("image_url cannot be None")
+    def get_inventory_quantity(self, variants) -> float:
+        return sum([float(variant["inventory_quantity"]) for variant in variants])
 
-        return f"https://shop88398.sfstatic.io{image_url}"
+    def get_price_from_variant(self, variant) -> float:
+        return float(variant["price"])
 
-    def get_flight_spec(self, description_list):
-        flight_specs = {
-            "speed": None,
-            "glide": None,
-            "turn": None,
-            "fade": None
-        }
+    def get_flight_spec_from_tag(self, flight_spec: str, tags: str) -> float | None:
+        match = re.search(rf"{flight_spec} (-?\d+(\.\d+)?)", tags)
 
-        # description_list is a string with html tags. Create a scrapy selector to parse the html
-        selector = scrapy.Selector(text=description_list)
-
-        # get td elements and drop the first 4 elements
-        tds = selector.css("td::text").getall()[4:8]
-
-        # try to cast string value to float for each td element and store in flight_specs
-        for key, td in zip(flight_specs.keys(), tds):
-            try:
-                flight_specs[key] = float(td)  # type: ignore 
-            except ValueError:
-                self.logger.warning(f"Could not cast {td} to float")
-
-        return list(flight_specs.values())
+        return float(match.group(1)) if match else None
