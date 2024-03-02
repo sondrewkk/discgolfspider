@@ -56,6 +56,7 @@ class BogeyshopSpider(scrapy.Spider):
                 if not price:
                     raise ValueError("No price found")
 
+                # If the disc is on sale the item wrapper has a span like this: <span class="prd-label-c">Salg</span>
                 disc["price"] = int(price.split(",")[0])
 
                 # There is no flight specs available on the site
