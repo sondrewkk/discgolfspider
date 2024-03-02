@@ -17,6 +17,7 @@ from discgolfspider.spiders.golfkongen_spider import GolfkongenSpider
 from discgolfspider.spiders.kastmeg_spider import KastmegSpider
 from discgolfspider.spiders.discsor_spider import DiscsorSpider
 from discgolfspider.spiders.dgshop_spider import DgshopSpider
+from discgolfspider.spiders.bogeyshop_spider import BogeyshopSpider
 
 
 settings = get_project_settings()
@@ -42,6 +43,7 @@ def crawl():
         yield runner.crawl(KastmegSpider)
         yield runner.crawl(DiscsorSpider)
         yield runner.crawl(DgshopSpider)
+        yield runner.crawl(BogeyshopSpider)
     except Exception as e:
         logger.error(f"Error in crawl: {e}")
 
