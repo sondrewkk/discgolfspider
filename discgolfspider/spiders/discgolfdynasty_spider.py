@@ -103,6 +103,8 @@ class DiscgolfdynastySpider(scrapy.Spider):
 
             if product_description_values:
                 for description in product_description_values:
+                    description = description.replace("\xa0", " ")
+                    
                     if ": " in description:
                         key, value = description.split(": ", 1)
                         key = key.lower()
