@@ -49,7 +49,8 @@ class GolfkongenSpider(scrapy.Spider):
     def parse(self, response):
         products = response.json()
 
-        if product_count := len(products) == 0:
+        product_count = len(products)
+        if product_count == 0:
             self.logger.error("No products found for golfkongen.no")
             return
 
@@ -119,7 +120,7 @@ class GolfkongenSpider(scrapy.Spider):
         return name.title()
 
     def find_brand(self, product: dict) -> str | None:
-        exclude = ["putter", "midrange", "driver", "tilbehør"]
+        exclude = ["putter", "midrange", "driver", "distance driver", "tilbehør"]
         categories = [category_list for category_list in product["categories"] if len(category_list) >= 2]
 
         for category_list in categories:
@@ -145,19 +146,27 @@ class GolfkongenSpider(scrapy.Spider):
                     break
 
         return None
-
+    
     def get_first_image(self, images: dict) -> str:
         if len(images) == 0 and "1" not in images:
             raise Exception("No images found")
 
-        return images["1"]["image"]
+        # Find the key of the first element and the return the value
+        first_key = list(images.keys())[0]
+        return images[first_key]["image"]
+
 
     def is_product_in_stock(self, product: dict) -> bool:
         quantity = 0
-        if "variants" in product and len(product["variants"]) > 0:
-            quantity = sum(int(variant["qty"]) for variant in product["variants"])
+        variants: list = product.get("variants")
+
+        if variants and len(variants) > 0:
+            for variant in variants:
+                qty_value = variant.get("qty")
+                quantity += int(qty_value) if qty_value else 0
         else:
-            quantity = int(product.get("qty", 0))
+            qty_value = product.get("qty")
+            quantity = int(qty_value) if qty_value else 0
 
         return quantity > 0
 
