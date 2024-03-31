@@ -2,7 +2,6 @@ import re
 
 
 class BrandHelper:
-
     brands = [
         "Alfa Discs",
         "Axiom",

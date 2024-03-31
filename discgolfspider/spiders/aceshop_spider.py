@@ -1,7 +1,7 @@
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
-
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class AceshopSpider(scrapy.Spider):

@@ -1,9 +1,10 @@
 import re
 import time
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class KastmegSpider(scrapy.Spider):
@@ -20,9 +21,7 @@ class KastmegSpider(scrapy.Spider):
             self.logger.error(f"No token found for {self.retailer}")
             return
 
-        self.headers = {
-            "X-Shopify-Access-Token": self.token
-        }
+        self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -33,7 +32,7 @@ class KastmegSpider(scrapy.Spider):
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
-        products = response.json()['products']
+        products = response.json()["products"]
 
         if len(products) == 0:
             self.logger.error(f"No products found for {self.retailer}")
@@ -59,7 +58,9 @@ class KastmegSpider(scrapy.Spider):
                 disc["price"] = self.get_price_from_variant(variants[0])
                 yield disc
             except Exception as e:
-                self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])})")
+                self.logger.error(
+                    f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])})"
+                )
                 self.logger.error(e)
 
         # Check if response containt next link header and follow it if it does

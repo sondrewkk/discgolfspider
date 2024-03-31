@@ -1,7 +1,7 @@
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
-
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class DiscgolfdynastySpider(scrapy.Spider):
@@ -50,7 +50,7 @@ class DiscgolfdynastySpider(scrapy.Spider):
                 disc["retailer_id"] = create_retailer_id(brand, url)
                 disc["spider_name"] = self.name
 
-                image = product.css("img::attr(\"src\")").get()
+                image = product.css('img::attr("src")').get()
                 disc["image"] = image if image else "https://via.placeholder.com/300"
 
                 sold_out = product.css(".product-thumbnail__sold-out-text::text").get()
@@ -69,14 +69,10 @@ class DiscgolfdynastySpider(scrapy.Spider):
                 self.logger.error(f"Error parsing disc: {disc}): {e}")
 
         # Check if there is a next page and fowllow it if there is one
-        next_page = response.css("a.pagination__next-button::attr(\"href\")").get()
+        next_page = response.css('a.pagination__next-button::attr("href")').get()
 
         if next_page is not None:
-            yield response.follow(
-                next_page,
-                callback=self.parse_products,
-                cb_kwargs={"brand": brand}
-            )
+            yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
 
     def format_disc_name(self, name: str, brand: str) -> str:
         formatted = name.replace("\n", "").strip().replace(brand + " ", "")
@@ -85,15 +81,15 @@ class DiscgolfdynastySpider(scrapy.Spider):
         return formatted
 
     def remove_brand_from_name(self, name: str, brand: str) -> str:
-        exclude = set(['discs'])
+        exclude = {"discs"}
 
         # Add brand words to the exclude list if they aren't 'discs'.
-        exclude.update(word for word in brand.lower().split(" ") if word != 'discs')
+        exclude.update(word for word in brand.lower().split(" ") if word != "discs")
 
         name_parts = name.split(" ")
         result_parts = [word for word in name_parts if word.lower() not in exclude]
 
-        return ' '.join(result_parts)
+        return " ".join(result_parts)
 
     def parse_disc_details(self, response, disc: CreateDiscItem):
         try:
@@ -104,7 +100,7 @@ class DiscgolfdynastySpider(scrapy.Spider):
             if product_description_values:
                 for description in product_description_values:
                     description = description.replace("\xa0", " ")
-                    
+
                     if ": " in description:
                         key, value = description.split(": ", 1)
                         key = key.lower()

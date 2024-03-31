@@ -1,9 +1,10 @@
 import re
 import time
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class DiscsjappaSpider(scrapy.Spider):
@@ -18,9 +19,7 @@ class DiscsjappaSpider(scrapy.Spider):
             self.logger.error("No token found for discsjappa.no")
             return
 
-        self.headers = {
-            "X-Shopify-Access-Token": self.token
-        }
+        self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -31,18 +30,20 @@ class DiscsjappaSpider(scrapy.Spider):
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
-        products = response.json()['products']
+        products = response.json()["products"]
 
         if len(products) == 0:
             self.logger.error("No products found for discsjappa.no")
             return
 
-        # Remove unwanted products  
+        # Remove unwanted products
         products = self.clean_products(products)
 
         for product in products:
-            url = f"https://discsjappa1.myshopify.com/admin/api/2023-01/products/{product['id']}/metafields.json"        
-            yield scrapy.Request(url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs=dict(product=product))
+            url = f"https://discsjappa1.myshopify.com/admin/api/2023-01/products/{product['id']}/metafields.json"
+            yield scrapy.Request(
+                url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs={"product": product}
+            )
 
         # Check if response containt next link header and follow it if it does
         if "link" in response.headers:
@@ -80,7 +81,9 @@ class DiscsjappaSpider(scrapy.Spider):
 
             yield disc
         except Exception as e:
-            self.logger.error(f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])}: {e})")
+            self.logger.error(
+                f"Error parsing disc: {product['title']}({self.create_product_url(product['handle'])}: {e})"
+            )
 
     def clean_products(self, products):
         self.logger.debug(f"Cleaning {len(products)} products")
@@ -116,11 +119,11 @@ class DiscsjappaSpider(scrapy.Spider):
             return speed, glide, turn, fade
 
         for metafield in metafields:
-            if metafield["key"] == "first_number":     # speed
+            if metafield["key"] == "first_number":  # speed
                 speed = float(metafield["value"])
             elif metafield["key"] == "second_number":  # glide
                 glide = float(metafield["value"])
-            elif metafield["key"] == "third_number":   # turn
+            elif metafield["key"] == "third_number":  # turn
                 turn = float(metafield["value"])
             elif metafield["key"] == "fourth_number":  # fade
                 fade = float(metafield["value"])

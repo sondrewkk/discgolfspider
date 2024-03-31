@@ -26,9 +26,10 @@ class DiscItem(scrapy.Item):
 
     def dict(self):
         return self.__dict__["_values"]
-    
+
     def has_flight_specs(self) -> bool:
-        return self.get("speed") != None and self.get("glide") != None and self.get("turn") != None and self.get("fade") != None
+        return all(self.get(field) is not None for field in ["speed", "glide", "turn", "fade"])
+
 
 class CreateDiscItem(scrapy.Item):
     name = scrapy.Field()
@@ -47,12 +48,12 @@ class CreateDiscItem(scrapy.Item):
 
     def dict(self):
         return self.__dict__["_values"]
-    
+
     def __repr__(self):
         return f"{self.get('name')} ({self.get('url')})"
 
     def __str__(self):
         return f"{self.get('name')} ({self.get('url')})"
-    
+
     def has_flight_specs(self) -> bool:
-        return self.get("speed") != None and self.get("glide") != None and self.get("turn") != None and self.get("fade") != None
+        return all(self.get(field) is not None for field in ["speed", "glide", "turn", "fade"])

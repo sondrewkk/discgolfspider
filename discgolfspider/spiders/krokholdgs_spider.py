@@ -1,7 +1,7 @@
-from ..items import CreateDiscItem
-from ..helpers.retailer_id import create_retailer_id
-
 import scrapy
+
+from ..helpers.retailer_id import create_retailer_id
+from ..items import CreateDiscItem
 
 
 class KrokholDgsSpider(scrapy.Spider):

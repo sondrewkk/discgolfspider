@@ -1,7 +1,7 @@
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
-
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class FrisbeebutikkenSpider(scrapy.Spider):
@@ -53,4 +53,4 @@ class FrisbeebutikkenSpider(scrapy.Spider):
             price_number = price.strip().split(",")[0]
             return int(price_number)
         except Exception as e:
-            raise ValueError(f"Could not parse price: {e}")
+            raise ValueError(f"Could not parse price: {e}") from e

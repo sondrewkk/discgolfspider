@@ -1,8 +1,9 @@
-from ..items import CreateDiscItem
-from ..helpers.retailer_id import create_retailer_id
 from urllib.parse import urljoin
 
 import scrapy
+
+from ..helpers.retailer_id import create_retailer_id
+from ..items import CreateDiscItem
 
 
 class GolfdiscerSpider(scrapy.Spider):
@@ -18,7 +19,7 @@ class GolfdiscerSpider(scrapy.Spider):
             brand_name = brand.css("a::text").get().strip()
 
             next_page = urljoin(response.url, brand_path)
-            
+
             if next_page is not None:
                 yield response.follow(
                     next_page,
@@ -36,7 +37,7 @@ class GolfdiscerSpider(scrapy.Spider):
             disc["brand"] = brand
             disc["retailer"] = self.allowed_domains[0]
             disc["price"] = int(product.css(".money::text").get().split(",")[0])
-            
+
             speed = product.css(".flight-numbers > li span::text").get()
             disc["speed"] = float(speed.strip()) if speed else None
 
@@ -52,7 +53,7 @@ class GolfdiscerSpider(scrapy.Spider):
             url = product.css(".product-image > a::attr(href)").get()
             disc["url"] = urljoin("https://golfdiscer.no", url)
             disc["retailer_id"] = create_retailer_id(brand, url)
- 
+
             yield disc
 
         next_page = response.css(".pagination-page a[title=Neste]::attr(href)").get()

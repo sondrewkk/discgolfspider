@@ -1,7 +1,7 @@
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
-
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class DiscoverdiscsSpider(scrapy.Spider):
@@ -10,7 +10,7 @@ class DiscoverdiscsSpider(scrapy.Spider):
     start_urls = ["https://discoverdiscs.no"]
 
     def parse(self, response):
-        brands = response.css("div[id=\"childlink-Merker\"] > ul > li")
+        brands = response.css('div[id="childlink-Merker"] > ul > li')
 
         for brand in brands:
             brand_name = brand.css("a::text").get().strip()
@@ -63,11 +63,7 @@ class DiscoverdiscsSpider(scrapy.Spider):
 
         next_page = response.css("a.pagination__item--prev::attr(href)").get()
         if next_page is not None:
-            yield response.follow(
-                next_page,
-                callback=self.parse_products,
-                cb_kwargs={"brand": brand}
-            )
+            yield response.follow(next_page, callback=self.parse_products, cb_kwargs={"brand": brand})
 
     def parse_flight_spec(self, product) -> tuple:
         speed = glide = turn = fade = None

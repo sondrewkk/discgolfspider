@@ -1,11 +1,12 @@
 from typing import Optional
-from scrapy.http import Headers
+
+import scrapy
 from scrapy import Request
+from scrapy.http import Headers
+
 from discgolfspider.helpers.brand_helper import BrandHelper
 from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
-
-import scrapy
 
 
 class DiscshopenSpider(scrapy.Spider):
@@ -49,7 +50,7 @@ class DiscshopenSpider(scrapy.Spider):
                 brand = self.get_brand_from_tags(disc_product["tags"])
                 disc["brand"] = brand
                 disc["retailer"] = self.allowed_domains[0]
-                disc["retailer_id"] = create_retailer_id(brand, url)        # type: ignore
+                disc["retailer_id"] = create_retailer_id(brand, url)  # type: ignore
                 flight_specs = self.get_flight_spec_from_meta_data(disc_product["meta_data"])
 
                 if flight_specs is not None and len(flight_specs) == 4:
@@ -138,8 +139,8 @@ class DiscshopenSpider(scrapy.Spider):
                 try:
                     value = float(meta["value"].replace(",", "."))
                     flight_specs_values[key] = value
-                except Exception:
-                    raise ValueError(f"Could not parse flight spec ({key}). Value: {value}")
+                except Exception as e:
+                    raise ValueError(f"Could not parse flight spec ({key}). Value: {value}") from e
 
         return list(flight_specs_values.values())
 

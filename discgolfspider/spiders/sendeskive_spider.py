@@ -1,9 +1,10 @@
 import re
 import time
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class SendeskiveSpider(scrapy.Spider):
@@ -20,9 +21,7 @@ class SendeskiveSpider(scrapy.Spider):
             self.logger.error("No token found for sendeskive.no")
             return
 
-        self.headers = {
-            "X-Shopify-Access-Token": self.token
-        }
+        self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -33,7 +32,7 @@ class SendeskiveSpider(scrapy.Spider):
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
-        products = response.json()['products']
+        products = response.json()["products"]
         self.logger.debug(f"Found {len(products)} products")
         self.logger.debug(f"First Product: {products[0]}")
 
@@ -45,14 +44,14 @@ class SendeskiveSpider(scrapy.Spider):
         products = self.clean_products(products)
 
         for product in products:
-            brand = product['vendor']
+            brand = product["vendor"]
             if brand != "Discsjappa":
                 url = f"{self.api_base_url}/products/{product['id']}/metafields.json"
                 yield scrapy.Request(
                     url,
                     headers=self.headers,
                     callback=self.parse_product_with_metafields,
-                    cb_kwargs=dict(product=product),
+                    cb_kwargs={"product": product},
                 )
 
         # Check if response containt next link header and foilow it if it does

@@ -3,8 +3,9 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 from scrapy import Spider
-from discgolfspider.discinstock_api import DiscinstockApi
 from scrapy.exceptions import DropItem
+
+from discgolfspider.discinstock_api import DiscinstockApi
 from discgolfspider.helpers.brand_helper import BrandHelper
 from discgolfspider.helpers.flightspec_suggester import FlightSpecSuggester, SuggestionError
 from discgolfspider.items import CreateDiscItem, DiscItem
@@ -24,8 +25,6 @@ class DiscItemPipeline:
             raise DropItem("Probably not a disc. Price is to high")
 
         return item
-
-
 
 
 class DiscItemBrandPipeline:
@@ -49,8 +48,6 @@ class DiscItemBrandPipeline:
         return disc
 
 
-
-
 class UpdateDiscPipeline:
     def __init__(self, api_url, username, password) -> None:
         self.discs = []
@@ -64,14 +61,12 @@ class UpdateDiscPipeline:
             password=crawler.settings.get("API_PASSWORD"),
         )
 
-
     def open_spider(self, spider):
         self.spider: Spider = spider
 
         current_discs = self.api.fetch_discs(spider.name)
         if current_discs:
             self.discs = current_discs
-
 
     def close_spider(self, spider):
         # Remaining discs is not in stock any more
@@ -84,7 +79,6 @@ class UpdateDiscPipeline:
 
         # Clear all discs for next scraping
         self.discs.clear()
-
 
     def process_item(self, item: CreateDiscItem, spider: Spider):
         spider.logger.debug(f"## Processing {item}")
@@ -99,14 +93,13 @@ class UpdateDiscPipeline:
             spider.logger.debug(f"## Update {disc_item}")
             diff = self.get_disc_difference(disc_item, existsing_disc_item)
 
-            if diff: 
+            if diff:
                 disc = self.update_disc(existsing_disc_item["_id"], diff)
-            
+
             # Disc shall not be set to not instock in close spider method.
             self.discs = list(filter(lambda disc: disc["_id"] != existsing_disc_item["_id"], self.discs))
 
         return disc
-
 
     def get_existing_disc_item(self, disc_item: CreateDiscItem) -> DiscItem:
         if not self.discs:
@@ -115,11 +108,9 @@ class UpdateDiscPipeline:
         existing_disc: DiscItem = next((d for d in self.discs if d["retailer_id"] == disc_item["retailer_id"]), None)
         return existing_disc
 
-
-    def update_disc(self, id: str, diff: dict) -> DiscItem:   
+    def update_disc(self, id: str, diff: dict) -> DiscItem:
         updated_disc: DiscItem = self.api.patch_disc(id, diff)
         return updated_disc
-
 
     def get_disc_difference(self, disc: CreateDiscItem, current_disc: DiscItem) -> dict:
         difference = {}
@@ -131,7 +122,7 @@ class UpdateDiscPipeline:
 
                 if not equal:
                     difference[k] = disc[k]
-        
+
         self.spider.logger.debug(f"## {difference=}")
 
         # If there is no updates return the crawled disc
@@ -143,27 +134,28 @@ class UpdateDiscPipeline:
         # If the stored item already has a value, skip update. The stored disc
         # is weighted more than a new disc.
         for k in difference.keys():
-            if self.is_flight_spec(k) and not self.is_flight_spec_updateable(disc[k], current_disc[k]) and not remove_flight_spec:
-                self.spider.logger.debug(f"Crawled disc has different {k} value than the stored disc. {disc[k]} | {current_disc[k]}. Flag flightspec for removal.")
+            if (
+                self.is_flight_spec(k)
+                and not self.is_flight_spec_updateable(disc[k], current_disc[k])
+                and not remove_flight_spec
+            ):
+                self.spider.logger.debug(
+                    f"Crawled disc has different {k} value than the stored disc. {disc[k]} | {current_disc[k]}. Flag flightspec for removal."
+                )
                 remove_flight_spec = True
 
         if remove_flight_spec:
             difference = {k: v for (k, v) in difference.items() if not self.is_flight_spec(k)}
 
-        self.spider.logger.debug(f"## {difference=}") 
+        self.spider.logger.debug(f"## {difference=}")
 
         return difference
 
-
     def is_flight_spec(self, spec_type: str) -> bool:
         return spec_type.lower() in ("speed", "glide", "turn", "fade")
-    
 
     def is_flight_spec_updateable(self, new: float, old: float) -> bool:
-        #self.spider.logger.debug(f"{new=} | {old=}")
         return new is not None and old is None
-
-
 
 
 class DiscItemFlightSpecPipeline:
@@ -177,9 +169,8 @@ class DiscItemFlightSpecPipeline:
             api_url=crawler.settings.get("API_URL"),
             username=crawler.settings.get("API_USERNAME"),
             password=crawler.settings.get("API_PASSWORD"),
-            enabled=crawler.settings.get("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE")
+            enabled=crawler.settings.get("ENABLE_DISC_ITEM_FLIGHT_SPEC_PIPELINE"),
         )
-
 
     def process_item(self, item: CreateDiscItem, spider: Spider):
         self.spider = spider
@@ -216,11 +207,10 @@ class DiscItemFlightSpecPipeline:
         spider.logger.debug(f"SUCCESSFULLY found flight spec for {disc_item}")
         disc_item["speed"] = flight_spec_suggestion["speed"]
         disc_item["glide"] = flight_spec_suggestion["glide"]
-        disc_item["turn"]  = flight_spec_suggestion["turn"]
-        disc_item["fade"]  = flight_spec_suggestion["fade"]
+        disc_item["turn"] = flight_spec_suggestion["turn"]
+        disc_item["fade"] = flight_spec_suggestion["fade"]
 
         return disc_item
-
 
     def check_disc(self, disc: DiscItem) -> bool:
         has_flight_spec = disc.has_flight_specs()

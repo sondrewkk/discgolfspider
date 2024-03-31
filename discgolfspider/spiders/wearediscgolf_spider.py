@@ -1,8 +1,9 @@
-from scrapy.http import Headers
+import scrapy
 from scrapy import Request
+from scrapy.http import Headers
+
 from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
-import scrapy
 
 
 class WeAreDiscgolfSpider(scrapy.Spider):
@@ -136,7 +137,7 @@ class WeAreDiscgolfSpider(scrapy.Spider):
                 spec = float(spec)
             except Exception as e:
                 msg = self.logger.error(f"Error parsing flight spec: {spec_type}({spec}). Reason: {e}")
-                raise ValueError(msg)
+                raise ValueError(msg) from e
 
             flight_specs.append(spec)
 

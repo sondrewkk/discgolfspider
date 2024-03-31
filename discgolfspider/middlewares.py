@@ -3,8 +3,8 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-from scrapy import signals
 from pyfiglet import figlet_format
+from scrapy import signals
 
 
 class DiscgolfspiderSpiderMiddleware:

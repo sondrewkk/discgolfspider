@@ -1,11 +1,12 @@
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
-from base64 import b64encode
-from urllib.parse import urlencode
-from typing import List
-
 import re
+from base64 import b64encode
+from typing import List
+from urllib.parse import urlencode
+
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class GolfkongenSpider(scrapy.Spider):
@@ -15,11 +16,7 @@ class GolfkongenSpider(scrapy.Spider):
         super().__init__(name, **kwargs)
         settings = kwargs["settings"]
         self.base_url = "https://api.quickbutik.com/v1"
-        self.query_params = {
-            "limit": 100,
-            "offset": 0,
-            "include_details": "true"
-        }
+        self.query_params = {"limit": 100, "offset": 0, "include_details": "true"}
         self.token = settings["GOLFKONGEN_API_KEY"]
 
         if not self.token:
@@ -30,9 +27,7 @@ class GolfkongenSpider(scrapy.Spider):
         username_password = f"{self.token}:{self.token}".encode()
         encoded_token = b64encode(username_password).decode()
 
-        self.headers = {
-            "Authorization": f"Basic {encoded_token}"
-        }
+        self.headers = {"Authorization": f"Basic {encoded_token}"}
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -146,7 +141,7 @@ class GolfkongenSpider(scrapy.Spider):
                     break
 
         return None
-    
+
     def get_first_image(self, images: dict) -> str:
         if len(images) == 0 and "1" not in images:
             raise Exception("No images found")
@@ -154,7 +149,6 @@ class GolfkongenSpider(scrapy.Spider):
         # Find the key of the first element and the return the value
         first_key = list(images.keys())[0]
         return images[first_key]["image"]
-
 
     def is_product_in_stock(self, product: dict) -> bool:
         quantity = 0
@@ -171,7 +165,7 @@ class GolfkongenSpider(scrapy.Spider):
         return quantity > 0
 
     def get_flight_specs(self, description: str) -> List[float]:
-        output_dict = {'Speed': None, 'Glide': None, 'Turn': None, 'Fade': None}
+        output_dict = {"Speed": None, "Glide": None, "Turn": None, "Fade": None}
 
         # Look for each rating in the text using regular expressions
         for key in output_dict.keys():

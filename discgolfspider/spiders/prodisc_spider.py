@@ -1,9 +1,10 @@
 import re
 import time
-from discgolfspider.items import CreateDiscItem
-from discgolfspider.helpers.retailer_id import create_retailer_id
 
 import scrapy
+
+from discgolfspider.helpers.retailer_id import create_retailer_id
+from discgolfspider.items import CreateDiscItem
 
 
 class ProdiscSpider(scrapy.Spider):
@@ -19,9 +20,7 @@ class ProdiscSpider(scrapy.Spider):
             self.logger.error("No token found for prodisc.no")
             return
 
-        self.headers = {
-            "X-Shopify-Access-Token": self.token
-        }
+        self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -32,18 +31,20 @@ class ProdiscSpider(scrapy.Spider):
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
-        products = response.json()['products']
+        products = response.json()["products"]
 
         if len(products) == 0:
             self.logger.error("No products found for prodisc.no")
             return
 
-        # Remove unwanted products  
+        # Remove unwanted products
         products = self.clean_products(products)
 
         for product in products:
-            url = f"{self.baseUrl}/products/{product['id']}/metafields.json"        
-            yield scrapy.Request(url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs=dict(product=product))
+            url = f"{self.baseUrl}/products/{product['id']}/metafields.json"
+            yield scrapy.Request(
+                url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs={"product": product}
+            )
 
         # Check if response containt next link header and follow it if it does
         if "link" in response.headers:
@@ -72,7 +73,9 @@ class ProdiscSpider(scrapy.Spider):
             variants = product["variants"]
             disc["in_stock"] = True if self.get_inventory_quantity(variants) > 0 else False
             disc["price"] = self.get_price_from_variant(variants[0])
-            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_spec(response.json()["metafields"])
+            disc["speed"], disc["glide"], disc["turn"], disc["fade"] = self.get_flight_spec(
+                response.json()["metafields"]
+            )
 
             yield disc
         except Exception as e:
@@ -131,7 +134,7 @@ class ProdiscSpider(scrapy.Spider):
     def get_flight_spec_value(self, metafield: dict) -> float:
         value = metafield["value"]
 
-        if type(value) == str:
+        if isinstance(value, str):
             value = value.replace(",", ".")
 
         return float(value)

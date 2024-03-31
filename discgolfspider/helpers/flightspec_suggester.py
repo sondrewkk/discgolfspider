@@ -1,27 +1,27 @@
 from collections import defaultdict
 
+
 class SuggestionError(Exception):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
 
-class FlightSpecSuggester:
 
+class FlightSpecSuggester:
     @classmethod
     def find_suggestion(cls, discs: list) -> dict:
-        
         # Filtrer away discs without flight spec
         discs = [disc for disc in discs if disc["speed"] is not None]
 
         if len(discs) == 0:
             raise SuggestionError("No discs to make a suggestion from.")
-        
+
         # Group discs based on flight specs
         grouped = defaultdict(list)
 
         for disc in discs:
             grouped[(disc["speed"], disc["glide"], disc["turn"], disc["fade"])].append(disc)
 
-        # Check how many groups there is. If there is more than one group, the suggestion can result in 
+        # Check how many groups there is. If there is more than one group, the suggestion can result in
         # data polution if the choosen group has wrong flight spec for the current disc
         number_of_groups = len(grouped.keys())
 
@@ -35,4 +35,3 @@ class FlightSpecSuggester:
         flight_spec = {k: v for k, v in suggestion_disc.items() if k in {"speed", "glide", "turn", "fade"}}
 
         return flight_spec
-        

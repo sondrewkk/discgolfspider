@@ -1,7 +1,8 @@
 import requests
-from discgolfspider.items import DiscItem, CreateDiscItem
 from scrapy.exceptions import CloseSpider, DropItem
 from scrapy.utils.log import logger
+
+from discgolfspider.items import CreateDiscItem, DiscItem
 
 
 class DiscinstockApi:
