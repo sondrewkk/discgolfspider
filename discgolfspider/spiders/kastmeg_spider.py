@@ -78,8 +78,9 @@ class KastmegSpider(scrapy.Spider):
         # Remove products with no variants
         products = [product for product in products if len(product["variants"]) > 0]
 
-        # Remove if prodiuct is a package
-        products = [product for product in products if "pakke" not in product["tags"]]
+        # Remove if product if it contains unwanted words
+        word_blacklist = ["pakke", "sekk", "tilbehør", "håndkle"]
+        products = [product for product in products if not any(word in product["tags"].lower() for word in word_blacklist)]
 
         self.logger.debug(f"Cleaned products: {len(products)}")
 
