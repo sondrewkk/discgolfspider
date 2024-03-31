@@ -1,24 +1,24 @@
-from twisted.internet import reactor, defer, task
-from scrapy.utils.project import get_project_settings
-from scrapy.utils.log import logger, configure_logging
 from scrapy.crawler import CrawlerRunner
+from scrapy.utils.log import configure_logging, logger
+from scrapy.utils.project import get_project_settings
+from twisted.internet import defer, reactor, task
 
-from discgolfspider.spiders.wearediscgolf_spider import WeAreDiscgolfSpider
 from discgolfspider.spiders.aceshop_spider import AceshopSpider
-from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
-from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
+from discgolfspider.spiders.bogeyshop_spider import BogeyshopSpider
+from discgolfspider.spiders.chicks_with_discs_spider import ChickWithDiscsSpider
+from discgolfspider.spiders.dgshop_spider import DgshopSpider
+from discgolfspider.spiders.discgolf_wheelie_spider import DiscgolfWheelieSpider
 from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 from discgolfspider.spiders.discoverdiscs_spider import DiscoverdiscsSpider
-from discgolfspider.spiders.prodisc_spider import ProdiscSpider
 from discgolfspider.spiders.discshopen_spider import DiscshopenSpider
-from discgolfspider.spiders.sendeskive_spider import SendeskiveSpider
-from discgolfspider.spiders.discgolf_wheelie_spider import DiscgolfWheelieSpider
+from discgolfspider.spiders.discsor_spider import DiscsorSpider
+from discgolfspider.spiders.frisbeebutikken_spider import FrisbeebutikkenSpider
+from discgolfspider.spiders.frisbeesor_spider import FrisbeesorSpider
 from discgolfspider.spiders.golfkongen_spider import GolfkongenSpider
 from discgolfspider.spiders.kastmeg_spider import KastmegSpider
-from discgolfspider.spiders.discsor_spider import DiscsorSpider
-from discgolfspider.spiders.dgshop_spider import DgshopSpider
-from discgolfspider.spiders.bogeyshop_spider import BogeyshopSpider
-
+from discgolfspider.spiders.prodisc_spider import ProdiscSpider
+from discgolfspider.spiders.sendeskive_spider import SendeskiveSpider
+from discgolfspider.spiders.wearediscgolf_spider import WeAreDiscgolfSpider
 
 settings = get_project_settings()
 configure_logging({"LOG_LEVEL": settings.get("LOG_LEVEL")})
@@ -44,6 +44,7 @@ def crawl():
         yield runner.crawl(DiscsorSpider)
         yield runner.crawl(DgshopSpider)
         yield runner.crawl(BogeyshopSpider)
+        yield runner.crawl(ChickWithDiscsSpider)
     except Exception as e:
         logger.error(f"Error in crawl: {e}")
 
