@@ -1,4 +1,4 @@
-FROM python:3.12 as req-stage
+FROM python:3.11.8 as req-stage
 
 WORKDIR /tmp
 
@@ -8,7 +8,7 @@ COPY ./pyproject.toml ./poetry.lock* /tmp/
 
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-FROM python:3.12-slim
+FROM python:3.11.8-slim
 
 WORKDIR /discgolfspider
 ENV PYTHONPATH "${PYTHONPATH}:/discgolfspider"
