@@ -20,3 +20,5 @@ start:
     @echo "Running all spiders..."
     poetry run crawl
     
+ruff:
+    poetry run ruff check --fix && poetry run ruff format
