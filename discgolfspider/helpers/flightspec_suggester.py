@@ -9,12 +9,6 @@ class SuggestionError(Exception):
 class FlightSpecSuggester:
     @classmethod
     def find_suggestion(cls, discs: list) -> dict:
-        # Filtrer away discs without flight spec
-        discs = [disc for disc in discs if disc["speed"] is not None]
-
-        if len(discs) == 0:
-            raise SuggestionError("No discs to make a suggestion from.")
-
         # Group discs based on flight specs
         grouped = defaultdict(list)
 
@@ -26,7 +20,7 @@ class FlightSpecSuggester:
         number_of_groups = len(grouped.keys())
 
         if number_of_groups > 1:
-            msg = f"To many groups. Choosing group can result in data polution. {grouped.keys()}"
+            msg = f"To many groups. Chosen group can result in data polution. {grouped.keys()}"
             raise SuggestionError(msg)
 
         # Return suggested flight spec

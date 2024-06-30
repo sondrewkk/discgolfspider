@@ -180,45 +180,35 @@ class DiscItemFlightSpecPipeline:
 
     def process_item(self, item: CreateDiscItem, spider: Spider):
         self.spider = spider
-
+        disc_item: CreateDiscItem = item
+        
+        # If disc item already has specs return
+        if disc_item.has_flight_specs():
+            return disc_item
+        
         if not self.enabled:
             spider.logger.debug("Flight spec pipeline is not enabled.")
             return item
 
-        disc_item: CreateDiscItem = item
-
-        # If disc item already has specs return
-        if disc_item.has_flight_specs():
-            return disc_item
-
-        spider.logger.debug(f"Look for flight spec for {disc_item}")
+        search_for_disc_name = disc_item["name"].split(",")[0]
+        spider.logger.info(f"Looking for flight spec for {search_for_disc_name}")
 
         # Get discs with same name and has values for flight specs
-        query = {"disc_name": disc_item["name"].split(",")[0]}
+        query = {"disc_name": search_for_disc_name}
         discs = self.api.search_disc(query)
 
-        spider.logger.debug(f"Before filter: {discs=}")
+        # Filter out discs without flight spec
+        discs = [d for d in discs if d.has_flight_spec()]
 
-        discs = list(filter(self.check_disc, discs))
-        spider.logger.debug(f" ## Discs with same name: {len(discs)}")
+        if discs:
+            try:
+                flight_spec_suggestion = FlightSpecSuggester.find_suggestion(discs)
+                disc_item.update(flight_spec_suggestion)
+                spider.logger.info(f"SUCCESSFULLY found flight spec for {disc_item}")
+            except SuggestionError as err:
+                spider.logger.warning(f"Could not find flight spec for {disc_item}. Reason: {err}")
 
-        flight_spec_suggestion = {}
-
-        try:
-            flight_spec_suggestion = FlightSpecSuggester.find_suggestion(discs)
-        except SuggestionError as err:
-            spider.logger.debug(f"Could not find suggestion for {disc_item}. Message: {err}")
-            return disc_item
-
-        spider.logger.debug(f"SUCCESSFULLY found flight spec for {disc_item}")
-        disc_item["speed"] = flight_spec_suggestion["speed"]
-        disc_item["glide"] = flight_spec_suggestion["glide"]
-        disc_item["turn"] = flight_spec_suggestion["turn"]
-        disc_item["fade"] = flight_spec_suggestion["fade"]
+        if not disc_item.has_flight_specs():
+            spider.logger.warning(f"Missing flight spec for {disc_item}. {disc_item.get('speed')=}, {disc_item.get('glide')=}, {disc_item.get('turn')=}, {disc_item.get('fade')=}")
 
         return disc_item
-
-    def check_disc(self, disc: DiscItem) -> bool:
-        has_flight_spec = disc.has_flight_specs()
-        self.spider.logger.debug(f"{has_flight_spec=}")
-        return has_flight_spec
