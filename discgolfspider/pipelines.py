@@ -2,6 +2,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+
 from scrapy import Spider
 from scrapy.exceptions import DropItem
 
@@ -30,9 +31,12 @@ class DiscItemPipeline:
 class DiscItemBrandPipeline:
     def process_item(self, item, spider):
         disc = CreateDiscItem(item)
+        brand = disc["brand"]
+
+        if not brand:
+            raise DropItem("Missing brand")
 
         brand_normalized = BrandHelper.normalize(disc["brand"])
-
         if not brand_normalized:
             message = f"Could not scrape brand name ({ 'None' if not disc['brand'] else disc['brand']}) for disc with name {disc['name']}. In stock = {disc['in_stock']}"
 
@@ -70,7 +74,11 @@ class UpdateDiscPipeline:
 
     def close_spider(self, spider):
         # Remaining discs is not in stock any more
+
         for disc in self.discs:
+            if not disc["in_stock"]:
+                continue
+
             id = disc["_id"]
             updated = self.api.patch_disc(id, {"in_stock": False})
 
@@ -123,12 +131,12 @@ class UpdateDiscPipeline:
                 if not equal:
                     difference[k] = disc[k]
 
-        self.spider.logger.debug(f"## {difference=}")
-
         # If there is no updates return the crawled disc
         if not difference:
-            self.spider.logger.debug(f"{disc} has nothing to update.")
+            self.spider.logger.debug(f"## {disc} has nothing to update.")
             return difference
+
+        self.spider.logger.debug(f"## {current_disc.get('name')}: {difference=}")
 
         # Only update flight spec if the scraped item has value and stored has None
         # If the stored item already has a value, skip update. The stored disc
@@ -146,8 +154,6 @@ class UpdateDiscPipeline:
 
         if remove_flight_spec:
             difference = {k: v for (k, v) in difference.items() if not self.is_flight_spec(k)}
-
-        self.spider.logger.debug(f"## {difference=}")
 
         return difference
 
@@ -188,7 +194,7 @@ class DiscItemFlightSpecPipeline:
         spider.logger.debug(f"Look for flight spec for {disc_item}")
 
         # Get discs with same name and has values for flight specs
-        query = {"disc_name": disc_item["name"]}
+        query = {"disc_name": disc_item["name"].split(",")[0]}
         discs = self.api.search_disc(query)
 
         spider.logger.debug(f"Before filter: {discs=}")
