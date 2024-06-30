@@ -53,10 +53,10 @@ class WeAreDiscgolfSpider(scrapy.Spider):
                 disc["retailer_id"] = create_retailer_id(brand, url)
 
                 flight_specs = self.parse_flight_spec(attributes)
-                if None in flight_specs and in_stock:
-                    self.logger.info(f"{disc} is missing flight spec data. {flight_specs=} ")
-
-                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+                if flight_specs and len(flight_specs) == 4:
+                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
+                else:
+                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = None, None, None, None
 
                 price = self.calculate_price(disc_product["price"], disc_product["tax_status"], in_stock)
                 disc["price"] = price
@@ -79,12 +79,7 @@ class WeAreDiscgolfSpider(scrapy.Spider):
             product
             for product in products
             if self.is_disc(product)
-            # and product.get("status") == "publish"
-            # and product.get("stock_status") == "instock"
-            # if self.is_disc(product)
-            # and product["status"] == "publish"
-            # and product["stock_status"] == "instock"
-            # and not product["slug"].endswith("mini")
+            and "starter set" not in product["name"].lower()
         ]
 
     def is_disc(self, product: dict) -> bool:
