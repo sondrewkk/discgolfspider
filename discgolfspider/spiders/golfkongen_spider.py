@@ -1,4 +1,5 @@
 import re
+import traceback
 from base64 import b64encode
 from typing import List
 from urllib.parse import urlencode
@@ -73,7 +74,7 @@ class GolfkongenSpider(scrapy.Spider):
 
                 yield disc
             except Exception as e:
-                self.logger.error(f"Error parsing disc: {disc}, reason: {e}")
+                self.logger.error(f"Error parsing disc: {disc}, reason: {e}: {traceback.print_exc()}")
 
         # When downloaded prdocuts is equal to limit, there are more products to download
         if product_count == self.query_params["limit"]:
@@ -89,6 +90,9 @@ class GolfkongenSpider(scrapy.Spider):
         return products
 
     def is_disc_product(self, product: dict) -> bool:
+        if "categories" not in product:
+            return False
+
         head_category: str = product["headcategory_name"]
         is_accessory: bool = self.find_category(product["categories"], "tilbehør")
         is_bag: bool = self.find_category(product["categories"], "bager og sekker")
@@ -99,6 +103,9 @@ class GolfkongenSpider(scrapy.Spider):
     def find_category(self, categories: list, target: str) -> bool:
         for category_list in categories:
             for category in category_list:
+                if "category" not in category:
+                    continue
+
                 if category["category"].lower() == target:
                     return True
 
