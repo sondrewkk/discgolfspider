@@ -181,11 +181,11 @@ class DiscItemFlightSpecPipeline:
     def process_item(self, item: CreateDiscItem, spider: Spider):
         self.spider = spider
         disc_item: CreateDiscItem = item
-        
+
         # If disc item already has specs return
         if disc_item.has_flight_specs():
             return disc_item
-        
+
         if not self.enabled:
             spider.logger.debug("Flight spec pipeline is not enabled.")
             return item
@@ -209,6 +209,8 @@ class DiscItemFlightSpecPipeline:
                 spider.logger.warning(f"Could not find flight spec for {disc_item}. Reason: {err}")
 
         if not disc_item.has_flight_specs():
-            spider.logger.warning(f"Missing flight spec for {disc_item}. {disc_item.get('speed')=}, {disc_item.get('glide')=}, {disc_item.get('turn')=}, {disc_item.get('fade')=}")
+            spider.logger.warning(
+                f"Missing flight spec for {disc_item}. {disc_item.get('speed')=}, {disc_item.get('glide')=}, {disc_item.get('turn')=}, {disc_item.get('fade')=}"
+            )
 
         return disc_item
