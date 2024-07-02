@@ -53,19 +53,14 @@ class WeAreDiscgolfSpider(scrapy.Spider):
                 disc["retailer_id"] = create_retailer_id(brand, url)
 
                 flight_specs = self.parse_flight_spec(attributes)
-                if flight_specs and len(flight_specs) == 4:
-                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
-                else:
-                    disc["speed"], disc["glide"], disc["turn"], disc["fade"] = None, None, None, None
+                disc["speed"], disc["glide"], disc["turn"], disc["fade"] = flight_specs
 
                 price = self.calculate_price(disc_product["price"], disc_product["tax_status"], in_stock)
                 disc["price"] = price
 
                 yield disc
             except Exception as e:
-                name = disc_product["name"]
-                link = disc_product["permalink"]
-                self.logger.error(f"Error parsing disc: {name}({link}). Reason: {e}")
+                self.logger.error(f"{disc} error: {e}")
 
         # Check for next page
         headers: Headers = response.headers
@@ -76,10 +71,7 @@ class WeAreDiscgolfSpider(scrapy.Spider):
 
     def clean_products(self, products: list) -> list:
         return [
-            product
-            for product in products
-            if self.is_disc(product)
-            and "starter set" not in product["name"].lower()
+            product for product in products if self.is_disc(product) and "starter set" not in product["name"].lower()
         ]
 
     def is_disc(self, product: dict) -> bool:
@@ -137,6 +129,8 @@ class WeAreDiscgolfSpider(scrapy.Spider):
                     spec = spec.replace(",", ".")
 
                 spec = float(spec)
+            else:
+                spec = None
 
             flight_specs.append(spec)
 
