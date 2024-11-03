@@ -7,7 +7,6 @@ from discgolfspider.spiders.aceshop_spider import AceshopSpider
 from discgolfspider.spiders.bogeyshop_spider import BogeyshopSpider
 from discgolfspider.spiders.chicks_with_discs_spider import ChickWithDiscsSpider
 from discgolfspider.spiders.dgshop_spider import DgshopSpider
-from discgolfspider.spiders.discgolf_wheelie_spider import DiscgolfWheelieSpider
 from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
 from discgolfspider.spiders.discoverdiscs_spider import DiscoverdiscsSpider
 from discgolfspider.spiders.discshopen_spider import DiscshopenSpider
@@ -38,7 +37,6 @@ def crawl():
         yield runner.crawl(ProdiscSpider)
         yield runner.crawl(DiscshopenSpider)
         yield runner.crawl(SendeskiveSpider)
-        yield runner.crawl(DiscgolfWheelieSpider)
         yield runner.crawl(GolfkongenSpider)
         yield runner.crawl(KastmegSpider)
         yield runner.crawl(DiscsorSpider)
