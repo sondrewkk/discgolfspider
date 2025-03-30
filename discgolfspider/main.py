@@ -4,7 +4,6 @@ from scrapy.utils.project import get_project_settings
 from twisted.internet import defer, reactor, task
 
 from discgolfspider.spiders.aceshop_spider import AceshopSpider
-from discgolfspider.spiders.bogeyshop_spider import BogeyshopSpider
 from discgolfspider.spiders.chicks_with_discs_spider import ChickWithDiscsSpider
 from discgolfspider.spiders.dgshop_spider import DgshopSpider
 from discgolfspider.spiders.discgolfdynasty_spider import DiscgolfdynastySpider
@@ -41,7 +40,6 @@ def crawl():
         yield runner.crawl(KastmegSpider)
         yield runner.crawl(DiscsorSpider)
         yield runner.crawl(DgshopSpider)
-        yield runner.crawl(BogeyshopSpider)
         yield runner.crawl(ChickWithDiscsSpider)
     except Exception as e:
         logger.error(f"Error in crawl: {e}")
