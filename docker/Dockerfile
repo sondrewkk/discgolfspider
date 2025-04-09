@@ -9,7 +9,7 @@ COPY ./pyproject.toml ./poetry.lock* /tmp/
 
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-FROM python:3.11.2-slim
+FROM python:3.11.2-slim AS runtime
 
 WORKDIR /discgolfspider
 ENV PYTHONPATH "${PYTHONPATH}:/discgolfspider"

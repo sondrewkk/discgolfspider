@@ -3,10 +3,13 @@ import re
 
 class BrandHelper:
     brands = [
+        "Ace Line",
+        "AGL Discs",
         "Alfa Discs",
         "Axiom",
         "Birdie Disc Golf Supply",
         "Clash Discs",
+        "Climo Disc Golf",
         "DGA",
         "Dino Discs",
         "Disc Golf UK",
@@ -34,6 +37,7 @@ class BrandHelper:
         "Momentum Disc Golf",
         "MVP",
         "Northstar",
+        "Ocean Disc",
         "Prodigy",
         "Prodiscus",
         "RPM Discs",

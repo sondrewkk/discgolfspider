@@ -14,6 +14,10 @@ class AceshopSpider(scrapy.Spider):
             try:
                 disc = CreateDiscItem()
                 disc["name"] = product.css(".product_box_title_row a::text").get()
+
+                if disc["name"] in "Startpakke":
+                    return
+
                 disc["image"] = product.css(".image img::attr(src)").get()
 
                 url = product.css(".product_box_title_row a::attr(href)").get()

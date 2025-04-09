@@ -43,15 +43,18 @@ class GolfkongenSpider(scrapy.Spider):
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
+        self.logger.debug(f"Response: {response}")
         products = response.json()
 
         product_count = len(products)
+        self.logger.debug(f"Product count: {product_count}")
         if product_count == 0:
             self.logger.error("No products found for golfkongen.no")
             return
 
         # Remove unwanted products
         products = self.clean_products(products)
+        self.logger.debug(f"Product count after cleaning: {len(products)}")
 
         # Parse products
         for product in products:
@@ -76,7 +79,7 @@ class GolfkongenSpider(scrapy.Spider):
             except Exception as e:
                 self.logger.error(f"Error parsing disc: {disc}, reason: {e}: {traceback.print_exc()}")
 
-        # When downloaded prdocuts is equal to limit, there are more products to download
+        # When downloaded products is equal to limit, there are more products to download
         if product_count == self.query_params["limit"]:
             self.query_params["offset"] += self.query_params["limit"]
             params = urlencode(self.query_params)
@@ -98,7 +101,8 @@ class GolfkongenSpider(scrapy.Spider):
         is_bag: bool = self.find_category(product["categories"], "bager og sekker")
         is_set: bool = self.find_category(product["categories"], "discgolf sett")
 
-        return head_category.lower() == "discgolf" and not is_accessory and not is_bag and not is_set
+        allowed_head_categories = ["putter", "midrange", "fairway driver", "driver", "distance driver", "discgolf"]
+        return head_category.lower() in allowed_head_categories and not is_accessory and not is_bag and not is_set
 
     def find_category(self, categories: list, target: str) -> bool:
         for category_list in categories:
@@ -122,7 +126,7 @@ class GolfkongenSpider(scrapy.Spider):
         return name.title()
 
     def find_brand(self, product: dict) -> str | None:
-        exclude = ["putter", "midrange", "driver", "distance driver", "tilbehør"]
+        exclude = ["putter", "midrange", "fairway driver", "driver", "distance driver", "tilbehør"]
         categories = [category_list for category_list in product["categories"] if len(category_list) >= 2]
 
         for category_list in categories:
@@ -142,6 +146,8 @@ class GolfkongenSpider(scrapy.Spider):
                     elif next_category_name == "mvp/axiom":
                         disc_name = product["title"].lower()
                         next_category_name = "mvp" if "mvp" in disc_name else "axiom"
+                    #elif next_category_name == "prodigy disc":
+                    #    next_category_name = "prodigy"
 
                     return next_category_name
                 else:
