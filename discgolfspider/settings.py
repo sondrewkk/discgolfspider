@@ -101,13 +101,6 @@ if DISCSHOPEN_API_SECRET_FILE:
     with open(DISCSHOPEN_API_SECRET_FILE, "r") as file:
         DISCSHOPEN_API_SECRET = file.read()
 
-# Discsjappa auth
-DISCSJAPPA_API_KEY = os.getenv("DISCSJAPPA_API_KEY")
-
-DISCSJAPPA_API_KEY_FILE = os.getenv("DISCSJAPPA_API_KEY_FILE")
-if DISCSJAPPA_API_KEY_FILE:
-    with open(DISCSJAPPA_API_KEY_FILE, "r") as file:
-        DISCSJAPPA_API_KEY = file.read()
 
 # Sendeskive auth
 SENDESKIVE_API_KEY = os.getenv("SENDESKIVE_API_KEY")

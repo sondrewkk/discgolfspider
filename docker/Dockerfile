@@ -3,6 +3,7 @@ FROM python:3.11.2 as req-stage
 WORKDIR /tmp
 
 RUN pip install poetry
+RUN poetry self add poetry-plugin-export
 
 COPY ./pyproject.toml ./poetry.lock* /tmp/
 

@@ -17,11 +17,12 @@ from discgolfspider.spiders.kastmeg_spider import KastmegSpider
 from discgolfspider.spiders.prodisc_spider import ProdiscSpider
 from discgolfspider.spiders.sendeskive_spider import SendeskiveSpider
 from discgolfspider.spiders.wearediscgolf_spider import WeAreDiscgolfSpider
+import os
 
 settings = get_project_settings()
-configure_logging({"LOG_LEVEL": settings.get("LOG_LEVEL")})
+log_level = os.getenv("LOG_LEVEL")
 
-runner = CrawlerRunner(settings)
+runner = None
 
 
 @defer.inlineCallbacks
@@ -59,9 +60,10 @@ def cb_loop_error(failure):
 
 def start():
     logger.info("Crawl process is starting.")
+    print("Crawl process is starting.")
 
     loop = task.LoopingCall(crawl)
-    interval = settings["CRAWL_INTERVAL"]
+    interval = float(os.getenv("CRAWL_INTERVAL", 3600))
 
     loopDeferred = loop.start(interval)
     loopDeferred.addCallback(cb_loop_done)
@@ -71,4 +73,12 @@ def start():
 
 
 if __name__ == "__main__":
+    print(f"Log level: {log_level}")
+
+    configure_logging({"LOG_LEVEL": log_level})
+
+    runner = CrawlerRunner(settings)
+
+    logger.info("Starting the spider...")
+
     start()
