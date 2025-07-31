@@ -25,24 +25,31 @@ settings = get_project_settings()
 log_level = os.getenv("LOG_LEVEL")
 configure_logging({'LOG_LEVEL': log_level or 'INFO'})
 
-runner = CrawlerRunner(settings)
+# Use a new runner for each spider to prevent resource buildup
+spider_classes = [
+    WeAreDiscgolfSpider,
+    AceshopSpider,
+    FrisbeebutikkenSpider,
+    FrisbeesorSpider,
+    DiscgolfdynastySpider,
+    ProdiscSpider,
+    DiscshopenSpider,
+    GolfkongenSpider,
+    KastmegSpider,
+    DiscsorSpider,
+    DgshopSpider,
+    ChickWithDiscsSpider
+]
 
 
 @defer.inlineCallbacks
 def crawl():
     try:
-        yield runner.crawl(WeAreDiscgolfSpider)
-        yield runner.crawl(AceshopSpider)
-        yield runner.crawl(FrisbeebutikkenSpider)
-        yield runner.crawl(FrisbeesorSpider)
-        yield runner.crawl(DiscgolfdynastySpider)
-        yield runner.crawl(ProdiscSpider)
-        yield runner.crawl(DiscshopenSpider)
-        yield runner.crawl(GolfkongenSpider)
-        yield runner.crawl(KastmegSpider)
-        yield runner.crawl(DiscsorSpider)
-        yield runner.crawl(DgshopSpider)
-        yield runner.crawl(ChickWithDiscsSpider)
+        for spider_class in spider_classes:
+            logger.info(f"Starting spider: {spider_class.name}")
+            runner = CrawlerRunner(settings)
+            yield runner.crawl(spider_class)
+            logger.info(f"Finished spider: {spider_class.name}")
     except Exception as e:
         logger.error(f"Error in crawl: {e}")
         import traceback

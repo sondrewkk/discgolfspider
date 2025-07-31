@@ -10,7 +10,7 @@ dependencies = [
     "pyfiglet<1.0.0,>=0.8.post1",
 ]
 name = "discgolfspider"
-version = "1.10.1"
+version = "1.10.2"
 description = "A spider that fetches information about golf discs on different norwegian online discgolf retailers"
 
 [project.scripts]
