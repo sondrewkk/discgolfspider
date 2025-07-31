@@ -11,25 +11,27 @@ from discgolfspider.items import CreateDiscItem
 class KastmegSpider(scrapy.Spider):
     name = "kastmeg"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
-        self.baseUrl = "https://kastmeg.myshopify.com/admin/api/2023-01"
-        self.token = settings["KASTMEG_API_KEY"]
+    def __init__(self, token, *args, **kwargs):
+        super(KastmegSpider, self).__init__(*args, **kwargs)
+        
+        self.token = token
+        self.baseUrl = "https://kastmeg.myshopify.com/admin/api/2025-01"
         self.retailer = "kastmeg.no"
-
-        if not self.token:
-            self.logger.error(f"No token found for {self.retailer}")
-            return
-
         self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        token = crawler.settings.get("KASTMEG_API_KEY")
+        if not token:
+            raise ValueError("Token is required for KastmegSpider")
 
-    def start_requests(self):
-        url = f"{self.baseUrl}/products.json?status=active&limit=100"
+        spider = cls(token=token)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
+
+    async def start(self):
+        url = f"{self.baseUrl}/products.json?limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 
     def parse(self, response):
@@ -43,6 +45,10 @@ class KastmegSpider(scrapy.Spider):
         products = self.clean_products(products)
 
         for product in products:
+            if product["status"] != "active":
+                self.logger.debug(f"Skipping product {product['title']} with status {product['status']}")
+                continue
+            
             url = f"{self.baseUrl}/products/{product['id']}/metafields.json"
             yield scrapy.Request(
                 url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs={"product": product}
