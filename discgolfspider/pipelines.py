@@ -78,11 +78,12 @@ class UpdateDiscPipeline:
 
         spider.logger.info(f"Closing spider {spider.name}. Remaining discs: {len(self.discs)}")
         for disc in self.discs:
-            spider.logger.info(f"## {disc['_id']} | {disc['name']} | {disc['in_stock']}")
+            spider.logger.debug(f"## {disc['_id']} | {disc['name']} | {disc['in_stock']}")
             if not disc["in_stock"]:
                 continue
 
             id = disc["_id"]
+            spider.logger.info(f"Changing in stock for {disc}) to False")
             updated = self.api.patch_disc(id, {"in_stock": False})
 
             if not updated:
