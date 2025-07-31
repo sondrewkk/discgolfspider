@@ -10,11 +10,11 @@ from discgolfspider.items import CreateDiscItem
 class ProdiscSpider(scrapy.Spider):
     name = "prodisc"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
-        self.baseUrl = "https://prodiscnorge.myshopify.com/admin/api/2023-01"
-        self.token = settings["PRODISC_API_KEY"]
+    def __init__(self, token,*args, **kwargs):
+        super(ProdiscSpider, self).__init__(*args, **kwargs)
+
+        self.baseUrl = "https://prodiscnorge.myshopify.com/admin/api/2025-01"
+        self.token = token
 
         if not self.token:
             self.logger.error("No token found for prodisc.no")
@@ -24,9 +24,16 @@ class ProdiscSpider(scrapy.Spider):
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        token = crawler.settings.get("PRODISC_API_KEY")
+        if not token:
+            raise ValueError("Token is required for ProdiscSpider")
+        
+        spider = cls(token=token)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
 
-    def start_requests(self):
+    async def start(self):
         url = f"{self.baseUrl}/products.json?status=active&limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 

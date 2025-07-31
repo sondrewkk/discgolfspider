@@ -6,7 +6,7 @@ from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
 
-class DgshopSpider(scrapy.Spider):
+class   DgshopSpider(scrapy.Spider):
     name = "dgshop"
     allowed_domains = ["dgshop.no"]
     start_urls = ["https://www.dgshop.no/"]

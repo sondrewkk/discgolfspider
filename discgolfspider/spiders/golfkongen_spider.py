@@ -13,16 +13,11 @@ from discgolfspider.items import CreateDiscItem
 class GolfkongenSpider(scrapy.Spider):
     name = "golfkongen"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
+    def __init__(self, token, *args, **kwargs):
+        super(GolfkongenSpider, self).__init__(*args, **kwargs)
         self.base_url = "https://api.quickbutik.com/v1"
         self.query_params = {"limit": 100, "offset": 0, "include_details": "true"}
-        self.token = settings["GOLFKONGEN_API_KEY"]
-
-        if not self.token:
-            self.logger.error("No token found for golfkongen.no")
-            return
+        self.token = token
 
         # Encode to base64 strig
         username_password = f"{self.token}:{self.token}".encode()
@@ -32,9 +27,16 @@ class GolfkongenSpider(scrapy.Spider):
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        token = crawler.settings.get("GOLFKONGEN_API_KEY")
+        if not token:
+            raise ValueError("Token is required for GolfkongenSpider")
+        
+        spider = cls(token=token)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
 
-    def start_requests(self):
+    async def start(self):
         params = urlencode(self.query_params)
         url = f"{self.base_url}/products?{params}"
 

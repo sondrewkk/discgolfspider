@@ -10,23 +10,25 @@ from discgolfspider.items import CreateDiscItem
 class DiscsorSpider(scrapy.Spider):
     name = "discsor"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
+    def __init__(self, token, *args, **kwargs):
+        super(DiscsorSpider, self).__init__(*args, **kwargs)
+
         self.baseUrl = "https://disc-sor.myshopify.com/admin/api/2023-07"
-        self.token = settings["DISCSOR_API_KEY"]
-
-        if not self.token:
-            self.logger.error("No token found for discsor.no")
-            return
-
+        self.token = token
         self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        token = crawler.settings.get("DISCSOR_API_KEY")
+        if not token:
+            raise ValueError("Token is required for DiscsorSpider")
+        
+        spider = cls(token=token)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
 
-    def start_requests(self):
+    async def start(self):
         url = f"{self.baseUrl}/products.json?status=active&limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 

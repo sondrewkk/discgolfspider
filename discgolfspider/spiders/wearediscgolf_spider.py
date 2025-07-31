@@ -12,18 +12,24 @@ class WeAreDiscgolfSpider(scrapy.Spider):
     start_urls = [
         "https://wearediscgolf.no/wp-json/wc/v3/products?stock_status=instock&status=publish&per_page=100&page=1"
     ]
-    http_auth_domain = "wearediscgolf.no"
-    image_placeholder = "https://wearediscgolf.no/content/uploads/woocommerce-placeholder-600x600.png"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
-        self.http_user = settings["WEAREDISCGOLF_API_KEY"]
-        self.http_pass = settings["WEAREDISCGOLF_API_SECRET"]
+    def __init__(self, http_user, http_pass, *args, **kwargs):
+        super(WeAreDiscgolfSpider, self).__init__(*args, **kwargs)
+        
+        self.http_auth_domain = "wearediscgolf.no"
+        self.image_placeholder = "https://wearediscgolf.no/content/uploads/woocommerce-placeholder-600x600.png"
+        self.http_user = http_user
+        self.http_pass = http_pass
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        http_user = crawler.settings.get("WEAREDISCGOLF_API_KEY")
+        http_pass = crawler.settings.get("WEAREDISCGOLF_API_SECRET")
+
+        spider = cls(http_user=http_user, http_pass=http_pass)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
 
     def parse(self, response):
         products = response.json()

@@ -10,24 +10,25 @@ from discgolfspider.items import CreateDiscItem
 class SendeskiveSpider(scrapy.Spider):
     name = "sendeskive"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
+    def __init__(self, token, *args, **kwargs):
+        super(SendeskiveSpider, self).__init__(*args, **kwargs)
         self.api_base_url = "https://sendeplate-no.myshopify.com/admin/api/2023-01"
         self.shop_base_url = "https://sendeskive.no"
-        self.token = settings["SENDESKIVE_API_KEY"]
-
-        if not self.token:
-            self.logger.error("No token found for sendeskive.no")
-            return
-
+        self.token = token
         self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        token = crawler.settings.get("SENDESKIVE_API_KEY")
+        if not token:
+            raise ValueError("Token is required for SendeskiveSpider")
+        
+        spider = cls(token=token)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
 
-    def start_requests(self):
+    async def start(self):
         url = f"{self.api_base_url}/products.json?status=active&product_type=Frisbee&limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 

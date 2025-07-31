@@ -1,29 +1,37 @@
-FROM python:3.11.2 as req-stage
+# An example using multi-stage image builds to create a final image without uv.
 
-WORKDIR /tmp
+# First, build the application in the `/app` directory.
+# See `Dockerfile` for details.
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
-RUN pip install poetry
-RUN poetry self add poetry-plugin-export
+# Disable Python downloads, because we want to use the system interpreter
+# across both images. If using a managed Python version, it needs to be
+# copied from the build image into the final image; see `standalone.Dockerfile`
+# for an example.
+ENV UV_PYTHON_DOWNLOADS=0
 
-COPY ./pyproject.toml ./poetry.lock* /tmp/
+WORKDIR /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+# Then, use a final image without uv
+FROM python:3.11-slim-bookworm
+# It is important to use the image that matches the builder, as the path to the
+# Python executable must be the same, e.g., using `python:3.11-slim-bookworm`
+# will fail.
 
-FROM python:3.11.2-slim AS runtime
+# Copy the application from the builder
+COPY --from=builder --chown=app:app /app /app
 
-WORKDIR /discgolfspider
-ENV PYTHONPATH "${PYTHONPATH}:/discgolfspider"
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+WORKDIR /app/
 
-COPY --from=req-stage /tmp/requirements.txt /discgolfspider/requirements.txt
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc build-essential libxml2-dev libxslt-dev python3-dev libffi-dev libssl-dev\
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install cryptography \
-    && pip install --no-cache-dir --upgrade -r /discgolfspider/requirements.txt \
-    && apt-get purge -y --auto-remove gcc build-essential libxml2-dev libxslt-dev python3-dev libffi-dev libssl-dev 
-
-COPY ./discgolfspider /discgolfspider/discgolfspider
-COPY ./scrapy.cfg /discgolfspider/scrapy.cfg
-
-CMD ["python", "discgolfspider/main.py"]
+# Run the spider
+CMD ["python", "-m", "discgolfspider.main"]

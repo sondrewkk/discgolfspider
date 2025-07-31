@@ -25,7 +25,7 @@ class DiscsjappaSpider(scrapy.Spider):
     def from_crawler(cls, crawler):
         return cls(settings=crawler.settings)
 
-    def start_requests(self):
+    async def start(self):
         url = "https://discsjappa1.myshopify.com/admin/api/2023-01/products.json?status=active&limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 

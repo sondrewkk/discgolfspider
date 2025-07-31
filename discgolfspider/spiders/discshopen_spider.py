@@ -15,15 +15,23 @@ class DiscshopenSpider(scrapy.Spider):
     start_urls = ["https://discshopen.no/wp-json/wc/v3/products?page=1&per_page=100"]
     http_auth_domain = "discshopen.no"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
-        self.http_user = settings["DISCSHOPEN_API_KEY"]
-        self.http_pass = settings["DISCSHOPEN_API_SECRET"]
+    def __init__(self, http_user, http_pass, *args, **kwargs):
+        super(DiscshopenSpider, self).__init__(*args, **kwargs)
+        self.http_user = http_user
+        self.http_pass = http_pass
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        http_user = crawler.settings.get("DISCSHOPEN_API_KEY")
+        http_pass = crawler.settings.get("DISCSHOPEN_API_SECRET")
+
+        if not http_user or not http_pass:
+            raise ValueError("HTTP user and password are required for DiscshopenSpider")
+        
+        spider = cls(http_user=http_user, http_pass=http_pass)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
 
     def parse(self, response):
         products = self.unique_dicts(response.json(), "id")

@@ -7,27 +7,28 @@ from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
 
-# TODO: lint and format, fjern pack fra kastmeg
 class ChickWithDiscsSpider(scrapy.Spider):
     name = "chickswithdiscs"
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        settings = kwargs["settings"]
-        self.baseUrl = "https://f18e1c-2.myshopify.com/admin/api/2024-01"
-        self.token = settings["CHICKSWITHDISCS_API_KEY"]
+    def __init__(self, token, *args, **kwargs):
+        super(ChickWithDiscsSpider, self).__init__(*args, **kwargs)
 
-        if not self.token:
-            self.logger.error("No token found for cwdiscs.no")
-            return
-
+        self.baseUrl = "https://f18e1c-2.myshopify.com/admin/api/2025-01"
+        self.token = token
         self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
-        return cls(settings=crawler.settings)
+        token = crawler.settings.get("CHICKSWITHDISCS_API_KEY")
+        if not token:
+            raise ValueError("Token is required for ChickWithDiscsSpider")
 
-    def start_requests(self):
+        spider = cls(token=token)
+        spider.settings = crawler.settings
+        spider.crawler = crawler
+        return spider
+
+    async def start(self):
         url = f"{self.baseUrl}/products.json?status=active&limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 

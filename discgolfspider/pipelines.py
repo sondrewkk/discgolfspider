@@ -3,6 +3,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
+from typing import Optional
 from scrapy import Spider
 from scrapy.exceptions import DropItem
 
@@ -72,10 +73,12 @@ class UpdateDiscPipeline:
         if current_discs:
             self.discs = current_discs
 
-    def close_spider(self, spider):
+    def close_spider(self, spider: Spider):
         # Remaining discs is not in stock any more
 
+        spider.logger.info(f"Closing spider {spider.name}. Remaining discs: {len(self.discs)}")
         for disc in self.discs:
+            spider.logger.info(f"## {disc['_id']} | {disc['name']} | {disc['in_stock']}")
             if not disc["in_stock"]:
                 continue
 
@@ -88,11 +91,12 @@ class UpdateDiscPipeline:
         # Clear all discs for next scraping
         self.discs.clear()
 
-    def process_item(self, item: CreateDiscItem, spider: Spider):
+    def process_item(self, item: CreateDiscItem, spider: Spider) -> DiscItem:
         spider.logger.debug(f"## Processing {item}")
+        
+        disc: DiscItem | None = None
         disc_item: CreateDiscItem = item
         existsing_disc_item = self.get_existing_disc_item(disc_item)
-        disc: DiscItem = existsing_disc_item
 
         if not existsing_disc_item:
             spider.logger.debug(f"## Create {disc_item}.")
@@ -103,17 +107,24 @@ class UpdateDiscPipeline:
 
             if diff:
                 disc = self.update_disc(existsing_disc_item["_id"], diff)
-
+            else:
+                spider.logger.debug(f"## No updates for {disc_item}.")
+                disc = existsing_disc_item
+            
             # Disc shall not be set to not instock in close spider method.
-            self.discs = list(filter(lambda disc: disc["_id"] != existsing_disc_item["_id"], self.discs))
+            self.discs = [disc for disc in self.discs if disc["_id"] != existsing_disc_item["_id"]]
 
+        if not disc:
+            spider.logger.error(f"Could not add or update {disc_item}.")
+            raise DropItem(f"Could not add or update {disc_item}")
+        
         return disc
-
-    def get_existing_disc_item(self, disc_item: CreateDiscItem) -> DiscItem:
+    
+    def get_existing_disc_item(self, disc_item: CreateDiscItem) -> Optional[DiscItem]:
         if not self.discs:
             return None
 
-        existing_disc: DiscItem = next((d for d in self.discs if d["retailer_id"] == disc_item["retailer_id"]), None)
+        existing_disc: Optional[DiscItem] = next((d for d in self.discs if d["retailer_id"] == disc_item["retailer_id"]), None)
         return existing_disc
 
     def update_disc(self, id: str, diff: dict) -> DiscItem:
