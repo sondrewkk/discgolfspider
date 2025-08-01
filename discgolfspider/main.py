@@ -16,6 +16,7 @@ from discgolfspider.spiders.golfkongen_spider import GolfkongenSpider
 from discgolfspider.spiders.kastmeg_spider import KastmegSpider
 from discgolfspider.spiders.prodisc_spider import ProdiscSpider
 from discgolfspider.spiders.wearediscgolf_spider import WeAreDiscgolfSpider
+from discgolfspider.spiders.bouncebackbirdie_spider import BounceBackBirdieSpider
 
 
 settings = get_project_settings()
@@ -34,12 +35,13 @@ def crawl():
         yield runner.crawl(DiscgolfdynastySpider)
         yield runner.crawl(DiscshopenSpider)
         yield runner.crawl(DiscsorSpider)
-        yield runner.crawl(FrisbeebutikkenSpider)
+        yield runner.crawl(FrisbeebutikkenSpider) 
         yield runner.crawl(FrisbeesorSpider)
         yield runner.crawl(GolfkongenSpider)
         yield runner.crawl(KastmegSpider)
         yield runner.crawl(ProdiscSpider)
         yield runner.crawl(WeAreDiscgolfSpider)
+        yield runner.crawl(BounceBackBirdieSpider)
 
         logger.info("Crawl cycle completed successfully.")
 

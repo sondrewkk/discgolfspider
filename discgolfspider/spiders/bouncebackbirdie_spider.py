@@ -7,21 +7,22 @@ from discgolfspider.helpers.retailer_id import create_retailer_id
 from discgolfspider.items import CreateDiscItem
 
 
-class ProdiscSpider(scrapy.Spider):
-    name = "prodisc"
+class BounceBackBirdieSpider(scrapy.Spider):
+    name = "bouncebackbirdie"
 
     def __init__(self, token, *args, **kwargs):
-        super(ProdiscSpider, self).__init__(*args, **kwargs)
+        super(BounceBackBirdieSpider, self).__init__(*args, **kwargs)
 
-        self.baseUrl = "https://prodiscnorge.myshopify.com/admin/api/2025-01"
+        self.baseUrl = "https://bouncebackbirdie.myshopify.com/admin/api/2025-01"
         self.token = token
+        self.retailer = "bouncebackbirdie.no"
         self.headers = {"X-Shopify-Access-Token": self.token}
 
     @classmethod
     def from_crawler(cls, crawler):
-        token = crawler.settings.get("PRODISC_API_KEY")
+        token = crawler.settings.get("BOUNCEBACKBIRDIE_API_KEY")
         if not token:
-            raise ValueError("Token is required for ProdiscSpider")
+            raise ValueError("Token is required for BounceBackBirdieSpider")
         
         spider = cls(token=token)
         spider.settings = crawler.settings
@@ -36,7 +37,7 @@ class ProdiscSpider(scrapy.Spider):
         products = response.json()["products"]
 
         if len(products) == 0:
-            self.logger.error("No products found for prodisc.no")
+            self.logger.error(f"No products found for {self.retailer}")
             return
 
         # Remove unwanted products
@@ -48,7 +49,7 @@ class ProdiscSpider(scrapy.Spider):
                 url, headers=self.headers, callback=self.parse_product_with_metafields, cb_kwargs={"product": product}
             )
 
-        # Check if response containt next link header and follow it if it does
+        # Check if response contains next link header and follow it if it does
         if "link" in response.headers:
             links = response.headers["link"].decode("utf-8")
             next_link_match = re.search('<([^>]+)>; rel="next"', links)
@@ -67,7 +68,7 @@ class ProdiscSpider(scrapy.Spider):
             disc["name"] = product["title"]
             disc["spider_name"] = self.name
             disc["brand"] = product["vendor"]
-            disc["retailer"] = "prodisc.no"
+            disc["retailer"] = self.retailer
             disc["url"] = self.create_product_url(product["handle"])
             disc["retailer_id"] = create_retailer_id(disc["brand"], disc["url"])
             disc["image"] = product["image"]["src"]
@@ -91,15 +92,17 @@ class ProdiscSpider(scrapy.Spider):
         products = [product for product in products if len(product["variants"]) > 0]
 
         # Remove products that has wrong product type
-        allowed_product_types = ["Disc"]
+        allowed_product_types = ["Distance Drivers", "Fairway", "Mid Range", "Putter"]
         products = [product for product in products if product["product_type"] in allowed_product_types]
+
+        products = [product for product in products if product["vendor"] not in ("Stormkast")]
 
         self.logger.debug(f"Cleaned products: {len(products)}")
 
         return products
 
     def create_product_url(self, product_handle: str):
-        return f"https://prodisc.no/products/{product_handle}"
+        return f"https://{self.retailer}/products/{product_handle}"
 
     def get_inventory_quantity(self, variants) -> float:
         return sum([float(variant["inventory_quantity"]) for variant in variants])

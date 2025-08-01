@@ -11,7 +11,7 @@ dependencies = [
     "cryptography==42.0.5",
 ]
 name = "discgolfspider"
-version = "1.10.6"
+version = "1.11.0"
 description = "A spider that fetches information about golf discs on different norwegian online discgolf retailers"
 
 [dependency-groups]
