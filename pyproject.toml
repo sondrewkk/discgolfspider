@@ -8,9 +8,10 @@ dependencies = [
     "requests<3.0.0,>=2.26.0",
     "python-dotenv==1.0.1",
     "pyfiglet<1.0.0,>=0.8.post1",
+    "cryptography==42.0.5",
 ]
 name = "discgolfspider"
-version = "1.10.4"
+version = "1.10.5"
 description = "A spider that fetches information about golf discs on different norwegian online discgolf retailers"
 
 [dependency-groups]
