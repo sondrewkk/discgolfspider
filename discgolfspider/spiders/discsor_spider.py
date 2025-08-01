@@ -28,7 +28,7 @@ class DiscsorSpider(scrapy.Spider):
         spider.crawler = crawler
         return spider
 
-    async def start(self):
+    def start_requests(self):
         url = f"{self.baseUrl}/products.json?status=active&limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 

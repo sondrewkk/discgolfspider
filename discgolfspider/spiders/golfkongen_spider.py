@@ -36,7 +36,7 @@ class GolfkongenSpider(scrapy.Spider):
         spider.crawler = crawler
         return spider
 
-    async def start(self):
+    def start_requests(self):
         params = urlencode(self.query_params)
         url = f"{self.base_url}/products?{params}"
 

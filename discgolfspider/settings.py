@@ -18,7 +18,7 @@ BOT_NAME = "discgolfspider"
 SPIDER_MODULES = ["discgolfspider.spiders"]
 NEWSPIDER_MODULE = "discgolfspider.spiders"
 
-#REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
+REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = "discinstock_crawler (+http://www.discinstock.no)"

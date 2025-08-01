@@ -4,17 +4,14 @@ authors = [
 ]
 requires-python = "<4.0,>=3.9"
 dependencies = [
-    "Scrapy<3.0.0,>=2.4.1",
+    "Scrapy==2.11.1",
     "requests<3.0.0,>=2.26.0",
     "python-dotenv==1.0.1",
     "pyfiglet<1.0.0,>=0.8.post1",
 ]
 name = "discgolfspider"
-version = "1.10.3"
+version = "1.10.4"
 description = "A spider that fetches information about golf discs on different norwegian online discgolf retailers"
-
-[project.scripts]
-crawl = "discgolfspider.main:start"
 
 [dependency-groups]
 dev = [

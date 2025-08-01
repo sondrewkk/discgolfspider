@@ -27,7 +27,7 @@ class DiscgolfWheelieSpider(scrapy.Spider):
     def from_crawler(cls, crawler):
         return cls(settings=crawler.settings)
 
-    async def start(self):
+    def start_requests(self):
         url = f"{self.baseUrl}/products.json?status=active&product_type=Disk&limit=100"
         yield scrapy.Request(url, headers=self.headers, callback=self.parse)
 

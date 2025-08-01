@@ -18,7 +18,7 @@ from discgolfspider.spiders.kastmeg_spider import KastmegSpider
 from discgolfspider.spiders.prodisc_spider import ProdiscSpider
 from discgolfspider.spiders.wearediscgolf_spider import WeAreDiscgolfSpider
 
-install_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
+#install_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
 settings = get_project_settings()
 configure_logging(settings)
 runner = CrawlerRunner(settings)
@@ -32,16 +32,16 @@ def crawl():
         runner = CrawlerRunner(settings)
         yield runner.crawl(AceshopSpider)
         yield runner.crawl(ChickWithDiscsSpider)
-        yield runner.crawl(DgshopSpider)
-        yield runner.crawl(DiscgolfdynastySpider)
-        yield runner.crawl(DiscshopenSpider)
-        yield runner.crawl(DiscsorSpider)
-        yield runner.crawl(FrisbeebutikkenSpider)
-        yield runner.crawl(FrisbeesorSpider)
-        yield runner.crawl(GolfkongenSpider)
-        yield runner.crawl(KastmegSpider)
-        yield runner.crawl(ProdiscSpider)
-        yield runner.crawl(WeAreDiscgolfSpider)
+        # yield runner.crawl(DgshopSpider)
+        # yield runner.crawl(DiscgolfdynastySpider)
+        # yield runner.crawl(DiscshopenSpider)
+        # yield runner.crawl(DiscsorSpider)
+        # yield runner.crawl(FrisbeebutikkenSpider)
+        # yield runner.crawl(FrisbeesorSpider)
+        # yield runner.crawl(GolfkongenSpider)
+        # yield runner.crawl(KastmegSpider)
+        # yield runner.crawl(ProdiscSpider)
+        # yield runner.crawl(WeAreDiscgolfSpider)
 
         logger.info("Crawl cycle completed successfully.")
 
